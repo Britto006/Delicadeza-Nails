@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #fff9f7;
+  --color-foreground: #2d1b14;
+  --color-muted: #f5edea;
+  --color-muted-foreground: #8c7a72;
+  --color-border: #e8ddd8;
+  --color-card: #ffffff;
+
+  --color-primary: #c4898a;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #b07374;
+  --color-secondary: #d4a8a9;
+  --color-secondary-foreground: #2d1b14;
+  --color-accent: #e8c4c5;
+  --color-accent-foreground: #2d1b14;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --color-slot-available: #34d399;
+  --color-slot-pending: #fbbf24;
+  --color-slot-booked: #f87171;
+  --color-slot-blocked: #9ca3af;
+
+  --color-slot-available-bg: #ecfdf5;
+  --color-slot-pending-bg: #fffbeb;
+  --color-slot-booked-bg: #fef2f2;
+  --color-slot-blocked-bg: #f9fafb;
+
+  --color-sidebar: #2d1b14;
+  --color-sidebar-foreground: #fff9f7;
+  --color-sidebar-active: #c4898a;
+
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-dm-serif);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  --shadow-soft: 0 2px 8px rgba(45, 27, 20, 0.06);
+  --shadow-medium: 0 4px 16px rgba(45, 27, 20, 0.08);
+  --shadow-large: 0 8px 32px rgba(45, 27, 20, 0.12);
+}
+
+body {
+  font-family: var(--font-sans);
+}

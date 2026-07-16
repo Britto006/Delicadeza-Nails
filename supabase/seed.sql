@@ -1,0 +1,5 @@
+-- Admin já criado via API
+-- Email: admin@delicadeza.com
+-- Senha: 123456
+-- O trigger on_auth_user_created criou o profile automaticamente.
+-- Para verificar: SELECT * FROM public.profiles;
