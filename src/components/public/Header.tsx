@@ -17,6 +17,12 @@ export function Header() {
           >
             WhatsApp
           </a>
+          <Link
+            href="/login"
+            className="text-sm text-muted-foreground transition-colors hover:text-primary"
+          >
+            Admin
+          </Link>
         </nav>
       </div>
     </header>

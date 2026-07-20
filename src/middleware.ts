@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const publicRoutes = ["/admin/login"];
+const publicRoutes = ["/login"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,8 +23,6 @@ export async function middleware(request: NextRequest) {
     if (request.cookies.get("demo_session")?.value === "true") {
       return NextResponse.next({ request });
     }
-    const url = new URL("/admin/login", request.url);
-    return NextResponse.redirect(url);
   }
 
   let supabaseResponse = NextResponse.next({ request });
@@ -55,7 +53,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    const url = new URL("/admin/login", request.url);
+    const url = new URL("/login", request.url);
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }

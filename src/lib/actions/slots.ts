@@ -166,7 +166,10 @@ function generateDemoSlots(dateFrom: string, dateTo: string) {
     const dayOfWeek = d.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) continue;
 
-    const dateStr = d.toISOString().split("T")[0]!;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${day}`;
 
     times.forEach((t, i) => {
       const [h, m] = t.split(":").map(Number);

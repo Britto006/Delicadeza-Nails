@@ -37,5 +37,5 @@ export async function logoutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/admin", "layout");
-  redirect("/admin/login");
+  redirect("/login");
 }
