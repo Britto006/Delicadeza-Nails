@@ -22,7 +22,7 @@ export async function loginAction(
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   }
 
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== "false") {
     if (
       parsed.data.email !== "admin@delicadeza.com" ||
       parsed.data.password !== "123456"

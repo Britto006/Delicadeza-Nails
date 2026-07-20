@@ -193,7 +193,7 @@ function generateDemoSlots(dateFrom: string, dateTo: string) {
 }
 
 export async function listSlotsAction(dateFrom: string, dateTo: string) {
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== "false") {
     const data = generateDemoSlots(dateFrom, dateTo);
     return { data };
   }
@@ -298,7 +298,7 @@ export async function deleteSlotAction(slotId: string) {
 }
 
 export async function getMonthSlotsAction(year: number, month: number) {
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== "false") {
     const monthStr = `${year}-${String(month).padStart(2, "0")}`;
     const firstDay = `${monthStr}-01`;
     const lastDay = `${monthStr}-31`;
