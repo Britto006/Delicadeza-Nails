@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -13,33 +13,16 @@ import {
   addMonth,
   subMonth,
 } from "@/lib/utils/date";
-import { getMonthSlotsAction } from "@/lib/actions/slots";
 import type { TimeSlot } from "@/types/database";
 
 interface CalendarProps {
   onDayClick: (date: string, slots: TimeSlot[]) => void;
+  initialSlots: Record<string, TimeSlot[]>;
 }
 
-export function Calendar({ onDayClick }: CalendarProps) {
+export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [monthSlots, setMonthSlots] = useState<Record<string, TimeSlot[]>>({});
-  const [loading, setLoading] = useState(true);
-
-  const loadMonth = useCallback(async (date: Date) => {
-    setLoading(true);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-
-    const result = await getMonthSlotsAction(year, month);
-    if (result.data) {
-      setMonthSlots(result.data);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    loadMonth(currentDate);
-  }, [currentDate, loadMonth]);
+  const [allSlots] = useState(initialSlots);
 
   const days = getDaysInMonth(currentDate);
 
@@ -48,7 +31,7 @@ export function Calendar({ onDayClick }: CalendarProps) {
 
   const getDaySlots = (day: Date): TimeSlot[] => {
     const dateStr = formatDate(day, "yyyy-MM-dd");
-    return monthSlots[dateStr] ?? [];
+    return allSlots[dateStr] ?? [];
   };
 
   return (
@@ -84,59 +67,48 @@ export function Calendar({ onDayClick }: CalendarProps) {
         ))}
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: 35 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square animate-pulse rounded-lg bg-muted"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-7 gap-1">
-          {days.map((day, i) => {
-            const slots = getDaySlots(day);
-            const availableCount = slots.filter(
-              (s) => s.status === "available"
-            ).length;
-            const inMonth = isCurrentMonth(day, currentDate);
-            const past = isDayPast(day);
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day, i) => {
+          const slots = getDaySlots(day);
+          const availableCount = slots.filter(
+            (s) => s.status === "available"
+          ).length;
+          const inMonth = isCurrentMonth(day, currentDate);
+          const past = isDayPast(day);
 
-            return (
-              <button
-                key={i}
-                onClick={() => {
-                  if (!past && inMonth && availableCount > 0) {
-                    onDayClick(formatDate(day, "yyyy-MM-dd"), slots);
-                  }
-                }}
-                disabled={past || !inMonth || availableCount === 0}
-                className={cn(
-                  "flex aspect-square flex-col items-center justify-center rounded-lg text-sm transition-all duration-200",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
-                  !inMonth && "text-muted-foreground/30",
-                  inMonth && !past && "text-foreground hover:bg-muted hover:shadow-soft",
-                  past && "text-muted-foreground/40",
-                  isDayToday(day) && "ring-2 ring-primary ring-offset-1",
-                  availableCount > 0 && !past && "cursor-pointer",
-                  availableCount === 0 && inMonth && !past && "cursor-default"
-                )}
-              >
-                <span className="text-sm font-medium">
-                  {formatDate(day, "d")}
-                </span>
-                {availableCount > 0 && (
-                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-slot-available" />
-                )}
-                {availableCount === 0 && inMonth && !past && slots.length > 0 && (
-                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-slot-blocked" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+          return (
+            <button
+              key={i}
+              onClick={() => {
+                if (!past && inMonth && availableCount > 0) {
+                  onDayClick(formatDate(day, "yyyy-MM-dd"), slots);
+                }
+              }}
+              disabled={past || !inMonth || availableCount === 0}
+              className={cn(
+                "flex aspect-square flex-col items-center justify-center rounded-lg text-sm transition-all duration-200",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
+                !inMonth && "text-muted-foreground/30",
+                inMonth && !past && "text-foreground hover:bg-muted hover:shadow-soft",
+                past && "text-muted-foreground/40",
+                isDayToday(day) && "ring-2 ring-primary ring-offset-1",
+                availableCount > 0 && !past && "cursor-pointer",
+                availableCount === 0 && inMonth && !past && "cursor-default"
+              )}
+            >
+              <span className="text-sm font-medium">
+                {formatDate(day, "d")}
+              </span>
+              {availableCount > 0 && (
+                <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-slot-available" />
+              )}
+              {availableCount === 0 && inMonth && !past && slots.length > 0 && (
+                <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-slot-blocked" />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

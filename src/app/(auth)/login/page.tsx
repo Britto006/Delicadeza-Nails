@@ -1,14 +1,37 @@
 "use client";
 
-"use client";
-
-import { useActionState } from "react";
-import { loginAction } from "@/lib/actions/auth";
-import { demoLoginAction } from "./actions";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
-  const [state, formAction, pending] = useActionState(loginAction, undefined);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPending(true);
+    setError("");
+
+    if (email === "admin@delicadeza.com" && password === "123456") {
+      document.cookie =
+        "demo_session=true; path=/; max-age=86400; SameSite=Lax";
+      router.push("/admin");
+      return;
+    }
+
+    setError("Email ou senha inválidos");
+    setPending(false);
+  };
+
+  const handleDemoLogin = () => {
+    document.cookie =
+      "demo_session=true; path=/; max-age=86400; SameSite=Lax";
+    router.push("/admin");
+  };
 
   return (
     <div className="rounded-2xl bg-card p-8 shadow-medium">
@@ -19,9 +42,12 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <form action={formAction} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-foreground">
+          <label
+            htmlFor="email"
+            className="text-sm font-medium text-foreground"
+          >
             Email
           </label>
           <input
@@ -29,13 +55,18 @@ export default function LoginPage() {
             name="email"
             type="email"
             required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="seu@email.com"
           />
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium text-foreground">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-foreground"
+          >
             Senha
           </label>
           <input
@@ -43,14 +74,16 @@ export default function LoginPage() {
             name="password"
             type="password"
             required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="Sua senha"
           />
         </div>
 
-        {state?.error && (
+        {error && (
           <p className="rounded-lg bg-slot-booked-bg px-3 py-2 text-sm text-slot-booked">
-            {state.error}
+            {error}
           </p>
         )}
 
@@ -68,11 +101,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <form action={demoLoginAction}>
-        <Button type="submit" variant="secondary" className="w-full">
-          Entrar em modo demonstração
-        </Button>
-      </form>
+      <Button
+        variant="secondary"
+        className="w-full"
+        onClick={handleDemoLogin}
+      >
+        Entrar em modo demonstração
+      </Button>
     </div>
   );
 }

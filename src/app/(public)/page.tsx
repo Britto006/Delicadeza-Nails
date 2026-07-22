@@ -1,22 +1,13 @@
-"use client";
-
-import { useState, useCallback } from "react";
-import { Calendar } from "@/components/public/Calendar";
-import { DaySlotsModal } from "@/components/public/DaySlotsModal";
-import type { TimeSlot } from "@/types/database";
+import { CalendarWrapper } from "@/components/public/CalendarWrapper";
+import { generateDemoSlotsGrouped } from "@/lib/demo-data";
 
 export default function Home() {
-  const [selectedDay, setSelectedDay] = useState<{
-    date: string;
-    slots: TimeSlot[];
-  } | null>(null);
-
-  const handleDayClick = useCallback(
-    (date: string, slots: TimeSlot[]) => {
-      setSelectedDay({ date, slots });
-    },
-    []
-  );
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const firstDay = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const lastDay = `${year}-${String(month + 1).padStart(2, "0")}-31`;
+  const initialSlots = generateDemoSlotsGrouped(firstDay, lastDay);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
@@ -29,7 +20,7 @@ export default function Home() {
         </p>
       </div>
 
-      <Calendar onDayClick={handleDayClick} />
+      <CalendarWrapper initialSlots={initialSlots} />
 
       <div className="mt-4 flex items-center justify-center gap-4 rounded-xl bg-card p-3 shadow-soft">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -49,13 +40,6 @@ export default function Home() {
           Bloqueado
         </div>
       </div>
-
-      <DaySlotsModal
-        open={!!selectedDay}
-        onClose={() => setSelectedDay(null)}
-        date={selectedDay?.date ?? null}
-        slots={selectedDay?.slots ?? []}
-      />
     </div>
   );
 }
