@@ -4,23 +4,30 @@ import { useState, useEffect } from "react";
 import { CalendarWrapper } from "@/components/public/CalendarWrapper";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { createClient } from "@/lib/supabase/client";
+import { todayInTimezone } from "@/lib/utils/date";
 import type { TimeSlot } from "@/types/database";
+
+function toLocalDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export default function Home() {
   const [slots, setSlots] = useState<Record<string, TimeSlot[]>>({});
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     const loadSlots = async () => {
-      const now = new Date();
-      const firstDay = now.toISOString().split("T")[0];
+      const supabase = createClient();
+      const firstDay = todayInTimezone();
 
       const future = new Date();
       future.setMonth(future.getMonth() + 3);
-      const lastDay = future.toISOString().split("T")[0];
+      const lastDay = toLocalDateString(future);
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("time_slots")
         .select("*")
         .gte("date", firstDay)
@@ -28,11 +35,18 @@ export default function Home() {
         .order("date", { ascending: true })
         .order("start_time", { ascending: true });
 
+      if (error) {
+        console.error("Erro ao buscar horários:", error.message);
+        setLoading(false);
+        return;
+      }
+
       if (data) {
         const grouped: Record<string, TimeSlot[]> = {};
         for (const slot of data) {
-          if (!grouped[slot.date]) grouped[slot.date] = [];
-          grouped[slot.date]!.push(slot);
+          const key = String(slot.date);
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key]!.push(slot);
         }
         setSlots(grouped);
       }
@@ -40,7 +54,7 @@ export default function Home() {
     };
 
     loadSlots();
-  }, [supabase]);
+  }, []);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
@@ -66,18 +80,9 @@ export default function Home() {
         <CalendarWrapper initialSlots={slots} />
       )}
 
-      <div className="mt-4 flex items-center justify-center gap-4 rounded-xl bg-card p-3 shadow-soft">
+      <div className="mt-4 flex items-center justify-center rounded-xl bg-card p-3 shadow-soft">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="h-2.5 w-2.5 rounded-full bg-slot-available" /> Disponível
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="h-2.5 w-2.5 rounded-full bg-slot-pending" /> Pendente
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="h-2.5 w-2.5 rounded-full bg-slot-booked" /> Reservado
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="h-2.5 w-2.5 rounded-full bg-slot-blocked" /> Bloqueado
+          <span className="h-2.5 w-2.5 rounded-full bg-slot-available" /> Dias com horários disponíveis
         </div>
       </div>
     </div>

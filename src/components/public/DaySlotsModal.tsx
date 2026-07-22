@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils/date";
 import { generateWhatsAppMessage, generateWhatsAppUrl, isDesktopDevice } from "@/lib/whatsapp";
@@ -73,7 +72,6 @@ export function DaySlotsModal({ open, onClose, date, slots }: DaySlotsModalProps
                 <span className="font-medium text-foreground">
                   {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                 </span>
-                <Badge status="available" />
               </button>
             ))
           )}

@@ -30,7 +30,10 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
   const handleNextMonth = () => setCurrentDate((d) => addMonth(d));
 
   const getDaySlots = (day: Date): TimeSlot[] => {
-    const dateStr = formatDate(day, "yyyy-MM-dd");
+    const y = day.getFullYear();
+    const m = String(day.getMonth() + 1).padStart(2, "0");
+    const d = String(day.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
     return allSlots[dateStr] ?? [];
   };
 
@@ -81,7 +84,10 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
               key={i}
               onClick={() => {
                 if (!past && inMonth && availableCount > 0) {
-                  onDayClick(formatDate(day, "yyyy-MM-dd"), slots);
+                  const y = day.getFullYear();
+                  const m = String(day.getMonth() + 1).padStart(2, "0");
+                  const dd = String(day.getDate()).padStart(2, "0");
+                  onDayClick(`${y}-${m}-${dd}`, slots);
                 }
               }}
               disabled={past || !inMonth || availableCount === 0}
