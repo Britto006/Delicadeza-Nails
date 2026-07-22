@@ -14,10 +14,11 @@ export default function Home() {
   useEffect(() => {
     const loadSlots = async () => {
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const firstDay = `${year}-${month}-01`;
-      const lastDay = `${year}-${month}-31`;
+      const firstDay = now.toISOString().split("T")[0];
+
+      const future = new Date();
+      future.setMonth(future.getMonth() + 3);
+      const lastDay = future.toISOString().split("T")[0];
 
       const { data } = await supabase
         .from("time_slots")
