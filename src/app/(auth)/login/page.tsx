@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
@@ -10,26 +11,24 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPending(true);
     setError("");
 
-    if (email === "admin@delicadeza.com" && password === "123456") {
-      document.cookie =
-        "demo_session=true; path=/; max-age=86400; SameSite=Lax";
-      router.push("/admin");
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+      setPending(false);
       return;
     }
 
-    setError("Email ou senha inválidos");
-    setPending(false);
-  };
-
-  const handleDemoLogin = () => {
-    document.cookie =
-      "demo_session=true; path=/; max-age=86400; SameSite=Lax";
     router.push("/admin");
   };
 
@@ -37,19 +36,12 @@ export default function LoginPage() {
     <div className="rounded-2xl bg-card p-8 shadow-medium">
       <div className="mb-8 text-center">
         <h1 className="font-serif text-3xl text-primary">Agenda Beleza</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Acesso administrativo
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Acesso administrativo</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium text-foreground"
-          >
-            Email
-          </label>
+          <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
           <input
             id="email"
             name="email"
@@ -63,12 +55,7 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="password"
-            className="text-sm font-medium text-foreground"
-          >
-            Senha
-          </label>
+          <label htmlFor="password" className="text-sm font-medium text-foreground">Senha</label>
           <input
             id="password"
             name="password"
@@ -82,32 +69,13 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="rounded-lg bg-slot-booked-bg px-3 py-2 text-sm text-slot-booked">
-            {error}
-          </p>
+          <p className="rounded-lg bg-slot-booked-bg px-3 py-2 text-sm text-slot-booked">{error}</p>
         )}
 
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Entrando..." : "Entrar"}
         </Button>
       </form>
-
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">ou</span>
-        </div>
-      </div>
-
-      <Button
-        variant="secondary"
-        className="w-full"
-        onClick={handleDemoLogin}
-      >
-        Entrar em modo demonstração
-      </Button>
     </div>
   );
 }

@@ -19,12 +19,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (process.env.NEXT_PUBLIC_DEMO_MODE !== "false") {
-    if (request.cookies.get("demo_session")?.value === "true") {
-      return NextResponse.next({ request });
-    }
-  }
-
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
