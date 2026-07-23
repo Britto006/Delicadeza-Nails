@@ -35,7 +35,7 @@ export default function LoginPage() {
   return (
     <div className="rounded-2xl bg-card p-8 shadow-medium">
       <div className="mb-8 text-center">
-        <h1 className="font-serif text-3xl text-primary">Agenda Beleza</h1>
+        <h1 className="font-serif text-3xl text-primary">Delicadeza Nails</h1>
         <p className="mt-1 text-sm text-muted-foreground">Acesso administrativo</p>
       </div>
 

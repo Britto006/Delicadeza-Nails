@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 const publicRoutes = ["/login"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const publicPrefixes = ["/_next", "/favicon", "/api/slots"];
