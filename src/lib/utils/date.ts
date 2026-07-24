@@ -9,8 +9,6 @@ import {
   subMonths,
   isSameMonth,
   isSameDay,
-  isToday,
-  isPast,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TIMEZONE } from "@/lib/constants";
@@ -24,6 +22,21 @@ function getNowInTimezone(): Date {
 
 export function todayInTimezone(): string {
   return format(getNowInTimezone(), "yyyy-MM-dd");
+}
+
+// Serializa um Date local como "yyyy-MM-dd" sem passar por UTC.
+export function toLocalDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// Interpreta "yyyy-MM-dd" como data local (new Date("yyyy-MM-dd") seria UTC
+// e, em UTC-3, cairia no dia anterior).
+export function parseDateString(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y!, m! - 1, d!);
 }
 
 export function getDaysInMonth(date: Date): Date[] {
@@ -47,12 +60,13 @@ export function isSelectedDay(date: Date, selected: Date | null): boolean {
   return selected ? isSameDay(date, selected) : false;
 }
 
+// Comparações contra o "hoje" do estúdio (America/Sao_Paulo), não do visitante.
 export function isDayToday(date: Date): boolean {
-  return isToday(date);
+  return toLocalDateString(date) === todayInTimezone();
 }
 
 export function isDayPast(date: Date): boolean {
-  return isPast(date) && !isToday(date);
+  return toLocalDateString(date) < todayInTimezone();
 }
 
 export function addMonth(date: Date): Date {

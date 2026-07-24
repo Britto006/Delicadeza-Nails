@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { CreateBatchDialog } from "@/components/admin/slots/CreateBatchDialog";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { formatDate } from "@/lib/utils/date";
+import { formatDate, todayInTimezone } from "@/lib/utils/date";
 import type { TimeSlot, SlotStatus } from "@/types/database";
 
 export default function HorariosPage() {
@@ -17,7 +17,7 @@ export default function HorariosPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
-    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`
+    `${todayInTimezone().slice(0, 7)}-01`
   );
   const supabase = createClient();
 
@@ -70,7 +70,7 @@ export default function HorariosPage() {
     }
   };
 
-  const today = new Date().toISOString().split("T")[0]!;
+  const today = todayInTimezone();
 
   return (
     <div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
+import { parseDateString, toLocalDateString } from "@/lib/utils/date";
 import { toast } from "sonner";
 
 interface CreateBatchDialogProps {
@@ -63,17 +64,15 @@ export function CreateBatchDialog({ open, onClose }: CreateBatchDialogProps) {
     const endTime = formData.get("endTime") as string;
     const intervalMinutes = Number(formData.get("intervalMinutes"));
 
-    const start = new Date(dateFrom);
-    const end = new Date(dateTo);
+    // parseDateString interpreta como data local; new Date("yyyy-MM-dd") seria
+    // UTC e geraria os slots no dia anterior (e no dia da semana errado).
+    const start = parseDateString(dateFrom);
+    const end = parseDateString(dateTo);
     const allSlots: { date: string; start_time: string; end_time: string; status: string }[] = [];
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       if (!weekDays.includes(d.getDay())) continue;
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      const dateStr = `${y}-${m}-${day}`;
-      allSlots.push(...generateTimeSlots(dateStr, startTime, endTime, intervalMinutes));
+      allSlots.push(...generateTimeSlots(toLocalDateString(d), startTime, endTime, intervalMinutes));
     }
 
     if (allSlots.length === 0) {

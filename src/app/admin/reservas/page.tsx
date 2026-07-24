@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
-import { formatDate } from "@/lib/utils/date";
+import { formatDate, todayInTimezone } from "@/lib/utils/date";
 import { toast } from "sonner";
 import { CalendarCheck, X } from "lucide-react";
 import type { TimeSlot } from "@/types/database";
@@ -22,7 +22,7 @@ export default function ReservasPage() {
 
   const loadSlots = useCallback(async () => {
     setLoading(true);
-    const today = new Date().toISOString().split("T")[0]!;
+    const today = todayInTimezone();
 
     const { data } = await supabase
       .from("time_slots")

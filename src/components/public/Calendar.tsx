@@ -12,6 +12,9 @@ import {
   weekDaysShort,
   addMonth,
   subMonth,
+  todayInTimezone,
+  toLocalDateString,
+  parseDateString,
 } from "@/lib/utils/date";
 import type { PublicTimeSlot } from "@/types/database";
 
@@ -21,7 +24,8 @@ interface CalendarProps {
 }
 
 export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // Mês inicial baseado no "hoje" do estúdio (America/Sao_Paulo).
+  const [currentDate, setCurrentDate] = useState(() => parseDateString(todayInTimezone()));
   const [allSlots] = useState(initialSlots);
 
   const days = getDaysInMonth(currentDate);
@@ -30,11 +34,7 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
   const handleNextMonth = () => setCurrentDate((d) => addMonth(d));
 
   const getDaySlots = (day: Date): PublicTimeSlot[] => {
-    const y = day.getFullYear();
-    const m = String(day.getMonth() + 1).padStart(2, "0");
-    const d = String(day.getDate()).padStart(2, "0");
-    const dateStr = `${y}-${m}-${d}`;
-    return allSlots[dateStr] ?? [];
+    return allSlots[toLocalDateString(day)] ?? [];
   };
 
   return (
@@ -84,10 +84,7 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
               key={i}
               onClick={() => {
                 if (!past && inMonth && availableCount > 0) {
-                  const y = day.getFullYear();
-                  const m = String(day.getMonth() + 1).padStart(2, "0");
-                  const dd = String(day.getDate()).padStart(2, "0");
-                  onDayClick(`${y}-${m}-${dd}`, slots);
+                  onDayClick(toLocalDateString(day), slots);
                 }
               }}
               disabled={past || !inMonth || availableCount === 0}

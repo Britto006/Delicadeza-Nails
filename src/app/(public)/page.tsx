@@ -4,15 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { CalendarWrapper } from "@/components/public/CalendarWrapper";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { createClient } from "@/lib/supabase/client";
-import { todayInTimezone } from "@/lib/utils/date";
+import { todayInTimezone, toLocalDateString, parseDateString } from "@/lib/utils/date";
 import type { PublicTimeSlot } from "@/types/database";
-
-function toLocalDateString(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
 
 export default function Home() {
   const [slots, setSlots] = useState<Record<string, PublicTimeSlot[]>>({});
@@ -26,7 +19,7 @@ export default function Home() {
     const supabase = createClient();
     const firstDay = todayInTimezone();
 
-    const future = new Date();
+    const future = parseDateString(firstDay);
     future.setMonth(future.getMonth() + 3);
     const lastDay = toLocalDateString(future);
 
