@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { MessageCircle, CheckCircle2 } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -20,11 +21,12 @@ interface DaySlotsModalProps {
 
 export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlotsModalProps) {
   const [selectedSlot, setSelectedSlot] = useState<PublicTimeSlot | null>(null);
-  const [step, setStep] = useState<"list" | "form">("list");
+  const [step, setStep] = useState<"list" | "form" | "done">("list");
   const [clientName, setClientName] = useState("");
   const [clientContact, setClientContact] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; contact?: string }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [whatsappUrl, setWhatsappUrl] = useState<string>("");
 
   if (!date) return null;
 
@@ -43,6 +45,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     setClientName("");
     setClientContact("");
     setFieldErrors({});
+    setWhatsappUrl("");
   };
 
   const handleClose = () => {
@@ -71,9 +74,6 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     setFieldErrors({});
     setSubmitting(true);
 
-    // Abre a janela antes do await para não ser barrada pelo popup blocker.
-    const whatsappWindow = window.open("", "_blank");
-
     const supabase = createClient();
     const { error } = await supabase.rpc("book_slot", {
       p_slot_id: selectedSlot.id,
@@ -81,9 +81,9 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
       p_client_contact: parsed.data.client_contact,
     });
 
+    setSubmitting(false);
+
     if (error) {
-      whatsappWindow?.close();
-      setSubmitting(false);
       if (error.message.includes("SLOT_UNAVAILABLE")) {
         toast.error("Esse horário acabou de ser reservado. Escolha outro.");
       } else {
@@ -94,23 +94,18 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
       return;
     }
 
+    // Prepara o link do WhatsApp e mostra a tela de confirmação. Não abrimos a
+    // aba automaticamente: window.open() é bloqueado no navegador interno do
+    // Instagram. Um <a> que a cliente toca é um gesto do usuário e sempre abre.
     const msg = generateWhatsAppMessage(
       date,
       `${selectedSlot.start_time.slice(0, 5)} - ${selectedSlot.end_time.slice(0, 5)}`,
       parsed.data.client_name
     );
-    const url = generateWhatsAppUrl(msg);
-
-    if (whatsappWindow) {
-      whatsappWindow.location.href = url;
-    } else {
-      window.location.href = url;
-    }
-
-    toast.success("Horário reservado! Confirme pelo WhatsApp.");
-    setSubmitting(false);
+    setWhatsappUrl(generateWhatsAppUrl(msg));
+    setStep("done");
+    // Atualiza o calendário ao fundo: o horário some da lista de disponíveis.
     onBooked();
-    handleClose();
   };
 
   return (
@@ -161,6 +156,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
             id="client-contact"
             label="Seu WhatsApp"
             type="tel"
+            inputMode="numeric"
             placeholder="Ex: 31999998888"
             value={clientContact}
             onChange={(e) => setClientContact(e.target.value)}
@@ -185,6 +181,46 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
               Reservar horário
             </Button>
           </div>
+        </div>
+      )}
+
+      {step === "done" && selectedSlot && (
+        <div className="space-y-4 text-center">
+          <div className="flex flex-col items-center gap-2">
+            <CheckCircle2 className="h-12 w-12 text-slot-available" />
+            <p className="text-lg font-medium text-foreground">Horário reservado!</p>
+          </div>
+
+          <div className="rounded-lg bg-muted p-4 text-left">
+            <p className="text-sm text-muted-foreground">Data</p>
+            <p className="font-medium text-foreground">{formattedDate}</p>
+            <p className="mt-2 text-sm text-muted-foreground">Horário</p>
+            <p className="font-medium text-foreground">
+              {selectedSlot.start_time.slice(0, 5)} - {selectedSlot.end_time.slice(0, 5)}
+            </p>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Falta só <span className="font-medium text-foreground">confirmar pelo WhatsApp</span>.
+            Toque no botão abaixo para enviar sua mensagem.
+          </p>
+
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-3 font-medium text-white shadow-soft transition-all duration-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          >
+            <MessageCircle className="h-5 w-5" />
+            Confirmar no WhatsApp
+          </a>
+
+          <button
+            onClick={handleClose}
+            className="text-sm text-muted-foreground underline-offset-2 hover:underline"
+          >
+            Fechar
+          </button>
         </div>
       )}
     </Dialog>
