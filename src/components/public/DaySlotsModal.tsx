@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { MessageCircle, CheckCircle2, CalendarPlus, Download, Link2 } from "lucide-react";
+import { CheckCircle2, CalendarPlus, Download, Link2 } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
 import { bookSlotSchema } from "@/lib/schemas/appointment";
-import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
 import { buildGoogleCalendarUrl, buildIcsDataUri } from "@/lib/calendar";
 import { SITE_URL } from "@/lib/constants";
 import type { PublicTimeSlot } from "@/types/database";
@@ -28,7 +27,6 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
   const [clientContact, setClientContact] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; contact?: string }>({});
   const [submitting, setSubmitting] = useState(false);
-  const [whatsappUrl, setWhatsappUrl] = useState<string>("");
   const [manageUrl, setManageUrl] = useState<string>("");
 
   if (!date) return null;
@@ -48,7 +46,6 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     setClientName("");
     setClientContact("");
     setFieldErrors({});
-    setWhatsappUrl("");
     setManageUrl("");
   };
 
@@ -109,18 +106,10 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
       return;
     }
 
-    // Prepara o link do WhatsApp e mostra a tela de confirmação. Não abrimos a
-    // aba automaticamente: window.open() é bloqueado no navegador interno do
-    // Instagram. Um <a> que a cliente toca é um gesto do usuário e sempre abre.
+    // Guarda o link de gestão (cancelar/remarcar) para a cliente.
     const token = (data as { slot_token?: string }[] | null)?.[0]?.slot_token;
     setManageUrl(token ? `${SITE_URL}/reserva/${token}` : "");
 
-    const msg = generateWhatsAppMessage(
-      date,
-      `${selectedSlot.start_time.slice(0, 5)} - ${selectedSlot.end_time.slice(0, 5)}`,
-      parsed.data.client_name
-    );
-    setWhatsappUrl(generateWhatsAppUrl(msg));
     setStep("done");
     // Atualiza o calendário ao fundo: o horário some da lista de disponíveis.
     onBooked();
@@ -218,20 +207,9 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
             </p>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            Falta só <span className="font-medium text-foreground">confirmar pelo WhatsApp</span>.
-            Toque no botão abaixo para enviar sua mensagem.
+          <p className="rounded-lg bg-slot-available-bg px-4 py-3 text-sm text-foreground">
+            Recebemos sua reserva! O <span className="font-medium">Delicadeza Nails vai te confirmar pelo WhatsApp</span> em breve. 💛
           </p>
-
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-3 font-medium text-white shadow-soft transition-all duration-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
-            <MessageCircle className="h-5 w-5" />
-            Confirmar no WhatsApp
-          </a>
 
           <div className="space-y-2 border-t border-border pt-4">
             <p className="text-xs text-muted-foreground">Quer um lembrete? Salve na sua agenda:</p>

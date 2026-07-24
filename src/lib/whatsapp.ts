@@ -33,10 +33,10 @@ export function generateConfirmationMessage(
 ): string {
   const oi = clientName ? `Oi, ${clientName}! ` : "Oi! ";
   return (
-    `${oi}Aqui é do ${STUDIO_NAME}. Seu horário está confirmado! 💅` +
+    `${oi}Aqui é do ${STUDIO_NAME}. Estou confirmando o seu horário! 💅` +
     `\n\nData: ${formatBrDate(date)}` +
     `\nHorário: ${time}` +
-    `\n\nQualquer imprevisto, é só me avisar. Até lá!`
+    `\n\nQual serviço você deseja fazer? Assim já deixo tudo prontinho pra você!`
   );
 }
 
