@@ -265,16 +265,23 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
           </div>
 
           {manageUrl && (
-            <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3 text-left">
-              <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+            <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3">
+              <p className="flex items-center justify-center gap-1.5 text-xs font-medium text-foreground">
                 <Link2 className="h-3.5 w-3.5" /> Precisa cancelar ou remarcar?
               </p>
-              <p className="break-all text-xs text-muted-foreground">{manageUrl}</p>
+              <a
+                href={manageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center rounded-lg border border-primary/40 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
+              >
+                Gerenciar minha reserva
+              </a>
               <button
                 onClick={copyManageLink}
-                className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+                className="block w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
               >
-                Copiar link
+                ou copiar o link para guardar
               </button>
             </div>
           )}
