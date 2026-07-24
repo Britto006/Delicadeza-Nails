@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/admin/Sidebar";
+import { MobileNav } from "@/components/admin/MobileNav";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 
 export default async function AdminLayout({
@@ -34,8 +35,9 @@ export default async function AdminLayout({
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminHeader userName={profile?.name ?? "Admin"} />
-        <main className="flex-1 overflow-y-auto bg-muted p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-muted p-4 pb-24 md:p-6">{children}</main>
       </div>
+      <MobileNav />
     </div>
   );
 }

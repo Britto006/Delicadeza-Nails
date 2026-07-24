@@ -142,7 +142,7 @@ export default function ReservasPage() {
         <div className="space-y-3">
           {slots.map((slot) => (
             <Card key={slot.id}>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-1">
                   <p className="font-medium text-foreground">
                     {formatDate(new Date(slot.date + "T12:00:00"), "dd 'de' MMMM")} - {slot.start_time.slice(0, 5)} às {slot.end_time.slice(0, 5)}
@@ -154,24 +154,24 @@ export default function ReservasPage() {
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {slot.status === "pending" && (
                     <>
-                      <Button size="sm" onClick={() => handleConfirm(slot)}>Confirmar</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleCancel(slot.id)}>
+                      <Button size="sm" className="flex-1 sm:flex-none" onClick={() => handleConfirm(slot)}>Confirmar</Button>
+                      <Button size="sm" variant="outline" className="flex-1 sm:flex-none" onClick={() => handleCancel(slot.id)}>
                         <X className="h-3 w-3" /> Cancelar
                       </Button>
                     </>
                   )}
                   {slot.status === "booked" && (
-                    <Button size="sm" variant="outline" onClick={() => handleCancel(slot.id)}>Cancelar reserva</Button>
+                    <Button size="sm" variant="outline" className="flex-1 sm:flex-none" onClick={() => handleCancel(slot.id)}>Cancelar reserva</Button>
                   )}
                 </div>
               </div>
 
               {showForm === slot.id && (
                 <div className="mt-4 border-t border-border pt-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <label className="text-xs font-medium text-muted-foreground">Nome da cliente</label>
                       <input value={clientName} onChange={(e) => setClientName(e.target.value)} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="Nome" />

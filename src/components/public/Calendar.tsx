@@ -39,7 +39,7 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
   };
 
   return (
-    <div className="rounded-2xl bg-card p-6 shadow-medium">
+    <div className="rounded-2xl bg-card p-4 shadow-medium sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <button
           onClick={handlePrevMonth}

@@ -126,7 +126,7 @@ export default function ConfiguracoesPage() {
                 return (
                 <div
                   key={day}
-                  className="flex items-center gap-3 rounded-lg border border-border p-3"
+                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
                 >
                   <label className="flex items-center gap-2">
                     <input
@@ -209,27 +209,27 @@ export default function ConfiguracoesPage() {
               </div>
             )}
 
-            <div className="flex items-end gap-2">
-              <div>
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-end">
+              <div className="sm:w-40">
                 <label className="text-xs font-medium text-muted-foreground">Data</label>
                 <input
                   type="date"
                   value={newBlockedDate}
                   onChange={(e) => setNewBlockedDate(e.target.value)}
-                  className="mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 />
               </div>
-              <div>
+              <div className="sm:flex-1">
                 <label className="text-xs font-medium text-muted-foreground">Motivo</label>
                 <input
                   type="text"
                   value={newBlockedReason}
                   onChange={(e) => setNewBlockedReason(e.target.value)}
                   placeholder="Ex: Feriado"
-                  className="mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 />
               </div>
-              <Button size="sm" onClick={handleAddBlockedDay}>
+              <Button size="sm" className="w-full sm:w-auto" onClick={handleAddBlockedDay}>
                 Adicionar
               </Button>
             </div>
