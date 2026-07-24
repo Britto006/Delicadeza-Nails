@@ -7,6 +7,7 @@ export interface CalendarEvent {
   date: string; // "yyyy-MM-dd"
   startTime: string; // "HH:MM" ou "HH:MM:SS"
   endTime: string;
+  manageUrl?: string; // link para cancelar/remarcar
 }
 
 // "2026-07-29" + "09:00:00" -> "20260729T090000" (horário local, sem UTC)
@@ -17,9 +18,10 @@ function toStamp(date: string, time: string): string {
 }
 
 function fields(e: CalendarEvent) {
+  const base = `Seu horário no ${STUDIO_NAME}. Não esqueça de confirmar pelo WhatsApp. :)`;
   return {
     title: `Horário — ${STUDIO_NAME}`,
-    details: `Seu horário no ${STUDIO_NAME}. Não esqueça de confirmar pelo WhatsApp. :)`,
+    details: e.manageUrl ? `${base}\n\nCancelar ou remarcar: ${e.manageUrl}` : base,
     start: toStamp(e.date, e.startTime),
     end: toStamp(e.date, e.endTime),
   };

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { MessageCircle, CheckCircle2, CalendarPlus, Download } from "lucide-react";
+import { MessageCircle, CheckCircle2, CalendarPlus, Download, Link2 } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { bookSlotSchema } from "@/lib/schemas/appointment";
 import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
 import { buildGoogleCalendarUrl, buildIcsDataUri } from "@/lib/calendar";
+import { SITE_URL } from "@/lib/constants";
 import type { PublicTimeSlot } from "@/types/database";
 
 interface DaySlotsModalProps {
@@ -28,6 +29,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; contact?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState<string>("");
+  const [manageUrl, setManageUrl] = useState<string>("");
 
   if (!date) return null;
 
@@ -47,6 +49,16 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     setClientContact("");
     setFieldErrors({});
     setWhatsappUrl("");
+    setManageUrl("");
+  };
+
+  const copyManageLink = async () => {
+    try {
+      await navigator.clipboard.writeText(manageUrl);
+      toast.success("Link copiado!");
+    } catch {
+      toast.error("Não foi possível copiar. Copie manualmente.");
+    }
   };
 
   const handleClose = () => {
@@ -76,7 +88,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     setSubmitting(true);
 
     const supabase = createClient();
-    const { error } = await supabase.rpc("book_slot", {
+    const { data, error } = await supabase.rpc("book_slot", {
       p_slot_id: selectedSlot.id,
       p_client_name: parsed.data.client_name,
       p_client_contact: parsed.data.client_contact,
@@ -100,6 +112,9 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     // Prepara o link do WhatsApp e mostra a tela de confirmação. Não abrimos a
     // aba automaticamente: window.open() é bloqueado no navegador interno do
     // Instagram. Um <a> que a cliente toca é um gesto do usuário e sempre abre.
+    const token = (data as { slot_token?: string }[] | null)?.[0]?.slot_token;
+    setManageUrl(token ? `${SITE_URL}/reserva/${token}` : "");
+
     const msg = generateWhatsAppMessage(
       date,
       `${selectedSlot.start_time.slice(0, 5)} - ${selectedSlot.end_time.slice(0, 5)}`,
@@ -226,6 +241,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
                   date,
                   startTime: selectedSlot.start_time,
                   endTime: selectedSlot.end_time,
+                  manageUrl: manageUrl || undefined,
                 })}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -239,6 +255,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
                   date,
                   startTime: selectedSlot.start_time,
                   endTime: selectedSlot.end_time,
+                  manageUrl: manageUrl || undefined,
                 })}
                 download="lembrete-delicadeza-nails.ics"
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
@@ -248,6 +265,21 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
               </a>
             </div>
           </div>
+
+          {manageUrl && (
+            <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3 text-left">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                <Link2 className="h-3.5 w-3.5" /> Precisa cancelar ou remarcar?
+              </p>
+              <p className="break-all text-xs text-muted-foreground">{manageUrl}</p>
+              <button
+                onClick={copyManageLink}
+                className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+              >
+                Copiar link
+              </button>
+            </div>
+          )}
 
           <button
             onClick={handleClose}

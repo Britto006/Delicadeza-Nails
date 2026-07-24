@@ -51,9 +51,14 @@ export default function HorariosPage() {
   }, [supabase, selectedDate, refreshKey]);
 
   const handleStatusChange = async (slotId: string, newStatus: SlotStatus) => {
+    // Ao liberar um horário, limpa dados da cliente e o token de gestão.
+    const patch =
+      newStatus === "available"
+        ? { status: newStatus, client_name: null, client_contact: null, manage_token: null }
+        : { status: newStatus };
     const { error } = await supabase
       .from("time_slots")
-      .update({ status: newStatus })
+      .update(patch)
       .eq("id", slotId);
 
     if (error) {

@@ -112,7 +112,7 @@ export default function ReservasPage() {
     if (!confirm("Cancelar esta reserva?")) return;
     const { error } = await supabase
       .from("time_slots")
-      .update({ status: "available", client_name: null, client_contact: null })
+      .update({ status: "available", client_name: null, client_contact: null, manage_token: null })
       .eq("id", slotId);
 
     if (error) {
