@@ -44,3 +44,4 @@ next-env.d.ts
 
 # Artefatos de teste de navegador (Playwright MCP)
 .playwright-mcp/
+.env*
