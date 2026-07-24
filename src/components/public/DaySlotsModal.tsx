@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, CalendarPlus, Download, Link2 } from "lucide-react";
+import { MessageCircle, CheckCircle2, CalendarPlus, Download, Link2 } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
 import { bookSlotSchema } from "@/lib/schemas/appointment";
+import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
 import { buildGoogleCalendarUrl, buildIcsDataUri } from "@/lib/calendar";
 import { SITE_URL } from "@/lib/constants";
 import type { PublicTimeSlot } from "@/types/database";
@@ -28,6 +29,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; contact?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [manageUrl, setManageUrl] = useState<string>("");
+  const [whatsappUrl, setWhatsappUrl] = useState<string>("");
 
   if (!date) return null;
 
@@ -47,6 +49,7 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     setClientContact("");
     setFieldErrors({});
     setManageUrl("");
+    setWhatsappUrl("");
   };
 
   const copyManageLink = async () => {
@@ -109,6 +112,14 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     // Guarda o link de gestão (cancelar/remarcar) para a cliente.
     const token = (data as { slot_token?: string }[] | null)?.[0]?.slot_token;
     setManageUrl(token ? `${SITE_URL}/reserva/${token}` : "");
+
+    // Link opcional (discreto) caso a cliente prefira já chamar o estúdio.
+    const msg = generateWhatsAppMessage(
+      date,
+      `${selectedSlot.start_time.slice(0, 5)} - ${selectedSlot.end_time.slice(0, 5)}`,
+      parsed.data.client_name
+    );
+    setWhatsappUrl(generateWhatsAppUrl(msg));
 
     setStep("done");
     // Atualiza o calendário ao fundo: o horário some da lista de disponíveis.
@@ -210,6 +221,15 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
           <p className="rounded-lg bg-slot-available-bg px-4 py-3 text-sm text-foreground">
             Recebemos sua reserva! O <span className="font-medium">Delicadeza Nails vai te confirmar pelo WhatsApp</span> em breve. 💛
           </p>
+
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-[#25D366] underline-offset-2 hover:underline"
+          >
+            <MessageCircle className="h-4 w-4" /> Prefere já falar? Chamar no WhatsApp
+          </a>
 
           <div className="space-y-2 border-t border-border pt-4">
             <p className="text-xs text-muted-foreground">Quer um lembrete? Salve na sua agenda:</p>
