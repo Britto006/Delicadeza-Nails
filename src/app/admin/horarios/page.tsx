@@ -109,7 +109,9 @@ export default function HorariosPage() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-serif text-2xl text-foreground">Gerenciar Horários</h1>
-          <p className="text-sm text-muted-foreground">Crie, edite e gerencie os horários disponíveis</p>
+          <p className="text-sm text-muted-foreground">
+            Horários futuros são criados automaticamente conforme seu funcionamento. Para tirar um dia, use “Bloquear” ou Dias Bloqueados nas Configurações.
+          </p>
         </div>
         <Button className="w-full sm:w-auto" onClick={() => setShowCreate(true)}>
           <Plus className="h-4 w-4" /> Criar Horários
