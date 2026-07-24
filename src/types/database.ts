@@ -34,3 +34,23 @@ export interface Profile {
   created_at: string;
   updated_at: string;
 }
+
+export interface DayConfig {
+  open: boolean;
+  start: string;
+  end: string;
+}
+
+export type WorkingHours = Record<string, DayConfig>;
+
+export interface BlockedDay {
+  date: string;
+  reason: string;
+}
+
+export interface StudioConfig {
+  id: number;
+  working_hours: WorkingHours;
+  blocked_days: BlockedDay[];
+  updated_at: string;
+}
