@@ -1,6 +1,8 @@
 import { connection } from "next/server";
 import { CalendarWrapper } from "@/components/public/CalendarWrapper";
 import { HomeError } from "@/components/public/HomeError";
+import { HowItWorks } from "@/components/public/HowItWorks";
+import { SocialProof } from "@/components/public/SocialProof";
 import { createClient } from "@/lib/supabase/server";
 import { todayInTimezone, toLocalDateString, parseDateString } from "@/lib/utils/date";
 import type { PublicTimeSlot, BlockedDay } from "@/types/database";
@@ -64,6 +66,9 @@ export default async function Home() {
           <span className="h-2.5 w-2.5 rounded-full bg-slot-available" /> Dias com horários disponíveis
         </div>
       </div>
+
+      <HowItWorks />
+      <SocialProof />
     </div>
   );
 }

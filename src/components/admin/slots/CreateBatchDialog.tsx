@@ -58,6 +58,9 @@ export function CreateBatchDialog({ open, onClose }: CreateBatchDialogProps) {
   const [checkedDays, setCheckedDays] = useState<Set<number>>(new Set([1, 2, 3, 4, 5]));
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
+  // Por padrão, cada dia usa o horário configurado em Configurações (ex: sábado
+  // 09-13). Desmarcado, usa o horário único abaixo para todos os dias.
+  const [useWorkingHours, setUseWorkingHours] = useState(true);
   const supabase = createClient();
 
   // Pré-preenche dias e horários com o horário de funcionamento configurado.
@@ -112,7 +115,17 @@ export function CreateBatchDialog({ open, onClose }: CreateBatchDialogProps) {
         skippedBlocked++;
         continue;
       }
-      allSlots.push(...generateTimeSlots(dateStr, startTime, endTime, intervalMinutes));
+
+      // Horário por dia (config) ou horário único do formulário.
+      let s = startTime;
+      let e = endTime;
+      if (useWorkingHours && config) {
+        const dayCfg = config.working_hours[DAY_KEYS[d.getDay()]!];
+        if (!dayCfg || !dayCfg.open) continue; // dia fechado na config: pula
+        s = dayCfg.start;
+        e = dayCfg.end;
+      }
+      allSlots.push(...generateTimeSlots(dateStr, s, e, intervalMinutes));
     }
 
     if (allSlots.length === 0) {
@@ -173,14 +186,29 @@ export function CreateBatchDialog({ open, onClose }: CreateBatchDialogProps) {
           </div>
         </div>
 
+        <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <input
+            type="checkbox"
+            checked={useWorkingHours}
+            onChange={(ev) => setUseWorkingHours(ev.target.checked)}
+            className="accent-primary"
+          />
+          Usar o horário de funcionamento de cada dia
+        </label>
+        {useWorkingHours && (
+          <p className="-mt-2 text-xs text-muted-foreground">
+            Cada dia usa seu próprio horário (ex: sábado 09–13). Dias marcados como fechado são pulados.
+          </p>
+        )}
+
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">Início</label>
-            <input type="time" name="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)} required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+            <input type="time" name="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)} required disabled={useWorkingHours} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50" />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">Fim</label>
-            <input type="time" name="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+            <input type="time" name="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} required disabled={useWorkingHours} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50" />
           </div>
           <div className="col-span-2 space-y-1.5 sm:col-span-1">
             <label className="text-sm font-medium text-foreground">Intervalo</label>

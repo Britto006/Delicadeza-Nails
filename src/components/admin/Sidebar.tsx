@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, CalendarCheck, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Calendar, CalendarCheck, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { STUDIO_NAME } from "@/lib/constants";
 import { logoutAction } from "@/lib/actions/auth";
 
 const links = [
+  { href: "/admin", label: "Painel", icon: LayoutDashboard },
   { href: "/admin/horarios", label: "Horários", icon: Calendar },
   { href: "/admin/reservas", label: "Reservas", icon: CalendarCheck },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
@@ -28,7 +29,8 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 px-3">
         {links.map((link) => {
           const Icon = link.icon;
-          const isActive = pathname.startsWith(link.href);
+          const isActive =
+            link.href === "/admin" ? pathname === "/admin" : pathname.startsWith(link.href);
           return (
             <Link
               key={link.href}

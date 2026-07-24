@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, CalendarCheck, Settings } from "lucide-react";
+import { LayoutDashboard, Calendar, CalendarCheck, Settings } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const links = [
+  { href: "/admin", label: "Painel", icon: LayoutDashboard },
   { href: "/admin/horarios", label: "Horários", icon: Calendar },
   { href: "/admin/reservas", label: "Reservas", icon: CalendarCheck },
   { href: "/admin/configuracoes", label: "Config", icon: Settings },
@@ -17,10 +18,11 @@ export function MobileNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
-      <div className="grid grid-cols-3">
+      <div className="grid grid-cols-4">
         {links.map((link) => {
           const Icon = link.icon;
-          const isActive = pathname.startsWith(link.href);
+          const isActive =
+            link.href === "/admin" ? pathname === "/admin" : pathname.startsWith(link.href);
           return (
             <Link
               key={link.href}
