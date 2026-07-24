@@ -30,6 +30,11 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: STUDIO_NAME,
+    description: "Agende seu horário na Delicadeza Nails de forma fácil e rápida",
+  },
 };
 
 export default function RootLayout({

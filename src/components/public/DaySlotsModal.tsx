@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { MessageCircle, CheckCircle2 } from "lucide-react";
+import { MessageCircle, CheckCircle2, CalendarPlus, Download } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
 import { bookSlotSchema } from "@/lib/schemas/appointment";
 import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
+import { buildGoogleCalendarUrl, buildIcsDataUri } from "@/lib/calendar";
 import type { PublicTimeSlot } from "@/types/database";
 
 interface DaySlotsModalProps {
@@ -214,6 +215,37 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
             <MessageCircle className="h-5 w-5" />
             Confirmar no WhatsApp
           </a>
+
+          <div className="space-y-2 border-t border-border pt-4">
+            <p className="text-xs text-muted-foreground">Quer um lembrete? Salve na sua agenda:</p>
+            <div className="flex gap-2">
+              <a
+                href={buildGoogleCalendarUrl({
+                  date,
+                  startTime: selectedSlot.start_time,
+                  endTime: selectedSlot.end_time,
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                Google Agenda
+              </a>
+              <a
+                href={buildIcsDataUri({
+                  date,
+                  startTime: selectedSlot.start_time,
+                  endTime: selectedSlot.end_time,
+                })}
+                download="lembrete-delicadeza-nails.ics"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <Download className="h-4 w-4" />
+                iPhone / .ics
+              </a>
+            </div>
+          </div>
 
           <button
             onClick={handleClose}
