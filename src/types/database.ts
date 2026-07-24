@@ -45,5 +45,8 @@ export interface StudioConfig {
   id: number;
   working_hours: WorkingHours;
   blocked_days: BlockedDay[];
+  slot_interval_minutes: number;
+  weeks_ahead: number;
+  admin_email: string;
   updated_at: string;
 }

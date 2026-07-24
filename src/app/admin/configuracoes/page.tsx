@@ -47,6 +47,7 @@ export default function ConfiguracoesPage() {
   const [newBlockedReason, setNewBlockedReason] = useState("");
   const [slotInterval, setSlotInterval] = useState(90);
   const [weeksAhead, setWeeksAhead] = useState(6);
+  const [adminEmail, setAdminEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -67,6 +68,7 @@ export default function ConfiguracoesPage() {
           setBlockedDays((data.blocked_days ?? []) as BlockedDay[]);
           if (data.slot_interval_minutes) setSlotInterval(data.slot_interval_minutes);
           if (data.weeks_ahead) setWeeksAhead(data.weeks_ahead);
+          if (data.admin_email) setAdminEmail(data.admin_email);
         }
         setLoading(false);
       });
@@ -91,6 +93,7 @@ export default function ConfiguracoesPage() {
       formData.set("blocked_days", JSON.stringify(blockedDays));
       formData.set("slot_interval_minutes", String(slotInterval));
       formData.set("weeks_ahead", String(weeksAhead));
+      formData.set("admin_email", adminEmail);
       await saveConfig(formData);
       toast.success("Configurações salvas");
     } catch {
@@ -288,6 +291,22 @@ export default function ConfiguracoesPage() {
               <div>
                 <label className="text-xs font-medium text-muted-foreground">WhatsApp</label>
                 <p className="text-sm font-medium text-foreground">+{WHATSAPP_NUMBER}</p>
+              </div>
+              <div>
+                <label htmlFor="admin-email" className="text-xs font-medium text-muted-foreground">
+                  E-mail de notificações
+                </label>
+                <input
+                  id="admin-email"
+                  type="email"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  placeholder="voce@exemplo.com"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Recebe um aviso a cada nova reserva. (Deve ser o mesmo e-mail da conta de envio.)
+                </p>
               </div>
             </div>
           </Card>

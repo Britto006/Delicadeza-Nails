@@ -24,6 +24,7 @@ export const studioConfigSchema = z.object({
     .int()
     .refine((v) => [30, 60, 90, 120].includes(v), "Duração inválida"),
   weeks_ahead: z.number().int().min(1, "Mínimo 1 semana").max(12, "Máximo 12 semanas"),
+  admin_email: z.string().trim().email("E-mail inválido"),
 });
 
 export type StudioConfigInput = z.infer<typeof studioConfigSchema>;
