@@ -29,6 +29,17 @@ const DAY_LABELS: Record<string, string> = {
   sunday: "Domingo",
 };
 
+// Ordem de exibição fixa (Object.entries de jsonb não preserva ordem).
+const DAY_ORDER = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+];
+
 export default function ConfiguracoesPage() {
   const [workingHours, setWorkingHours] = useState<WorkingHours>(DEFAULT_HOURS);
   const [blockedDays, setBlockedDays] = useState<BlockedDay[]>([]);
@@ -46,7 +57,11 @@ export default function ConfiguracoesPage() {
       .single()
       .then(({ data, error }) => {
         if (!error && data) {
-          setWorkingHours(data.working_hours as WorkingHours);
+          const hours = data.working_hours as WorkingHours;
+          // Config vazia (linha recém-criada) mantém os defaults da UI.
+          if (hours && Object.keys(hours).length > 0) {
+            setWorkingHours(hours);
+          }
           setBlockedDays((data.blocked_days ?? []) as BlockedDay[]);
         }
         setLoading(false);
@@ -106,7 +121,9 @@ export default function ConfiguracoesPage() {
           <Card>
             <h2 className="mb-4 font-serif text-lg text-foreground">Horário de Funcionamento</h2>
             <div className="space-y-3">
-              {Object.entries(workingHours).map(([day, config]) => (
+              {DAY_ORDER.filter((day) => workingHours[day]).map((day) => {
+                const config = workingHours[day]!;
+                return (
                 <div
                   key={day}
                   className="flex items-center gap-3 rounded-lg border border-border p-3"
@@ -157,7 +174,8 @@ export default function ConfiguracoesPage() {
                     <span className="text-sm text-muted-foreground">Fechado</span>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
 

@@ -25,7 +25,9 @@ BEGIN
          client_contact = trim(p_client_contact)
    WHERE id = p_slot_id
      AND status = 'available'
-     AND date >= (now() AT TIME ZONE 'America/Sao_Paulo')::date
+     AND (date > (now() AT TIME ZONE 'America/Sao_Paulo')::date
+          OR (date = (now() AT TIME ZONE 'America/Sao_Paulo')::date
+              AND start_time > (now() AT TIME ZONE 'America/Sao_Paulo')::time))
   RETURNING date, start_time, end_time;
 
   IF NOT FOUND THEN

@@ -5,11 +5,13 @@
 REVOKE SELECT ON public.time_slots FROM anon;
 GRANT SELECT (id, date, start_time, end_time, status) ON public.time_slots TO anon;
 
--- Recria a policy de SELECT com roles explícitos (linhas continuam todas
--- visíveis; a restrição de PII é feita pelo grant de colunas acima).
+-- Recria a policy de SELECT apenas para anon (linhas todas visíveis; a
+-- restrição de PII é feita pelo grant de colunas acima). Para authenticated,
+-- a leitura passa a exigir role admin — policy na migration seguinte —
+-- senão um usuário comum logado leria as colunas de PII.
 DROP POLICY IF EXISTS "time_slots_select_public" ON public.time_slots;
 
 CREATE POLICY "time_slots_select_public" ON public.time_slots
   FOR SELECT
-  TO anon, authenticated
+  TO anon
   USING (true);

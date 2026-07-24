@@ -13,15 +13,15 @@ import {
 import { ptBR } from "date-fns/locale";
 import { TIMEZONE } from "@/lib/constants";
 
-function getNowInTimezone(): Date {
-  const now = new Date();
-  return new Date(
-    now.toLocaleString("en-US", { timeZone: TIMEZONE })
-  );
-}
-
+// "yyyy-MM-dd" de hoje no fuso do estúdio. O locale en-CA formata nativamente
+// como yyyy-MM-dd (evita o parsing frágil de new Date(toLocaleString())).
 export function todayInTimezone(): string {
-  return format(getNowInTimezone(), "yyyy-MM-dd");
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
 // Serializa um Date local como "yyyy-MM-dd" sem passar por UTC.

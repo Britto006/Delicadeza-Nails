@@ -49,29 +49,37 @@ export default function ReservasPage() {
     };
   }, [supabase, filter, refreshKey]);
 
-  const handleConfirm = async (slotId: string) => {
-    if (showForm === slotId) {
-      if (!clientName || !clientContact) {
-        toast.error("Preencha nome e contato da cliente");
-        return;
-      }
+  const handleConfirm = async (slot: TimeSlot) => {
+    // Reserva feita pelo site já vem com nome/contato: confirma direto.
+    // Sem dados (slot marcado manualmente), abre o formulário.
+    if (showForm !== slot.id && (!slot.client_name || !slot.client_contact)) {
+      setClientName(slot.client_name ?? "");
+      setClientContact(slot.client_contact ?? "");
+      setShowForm(slot.id);
+      return;
+    }
 
-      const { error } = await supabase
-        .from("time_slots")
-        .update({ status: "booked", client_name: clientName, client_contact: clientContact })
-        .eq("id", slotId);
+    const name = showForm === slot.id ? clientName : slot.client_name;
+    const contact = showForm === slot.id ? clientContact : slot.client_contact;
 
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Reserva confirmada!");
-        setShowForm(null);
-        setClientName("");
-        setClientContact("");
-        loadSlots();
-      }
+    if (!name || !contact) {
+      toast.error("Preencha nome e contato da cliente");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("time_slots")
+      .update({ status: "booked", client_name: name, client_contact: contact })
+      .eq("id", slot.id);
+
+    if (error) {
+      toast.error(error.message);
     } else {
-      setShowForm(slotId);
+      toast.success("Reserva confirmada!");
+      setShowForm(null);
+      setClientName("");
+      setClientContact("");
+      loadSlots();
     }
   };
 
@@ -149,7 +157,7 @@ export default function ReservasPage() {
                 <div className="flex items-center gap-2">
                   {slot.status === "pending" && (
                     <>
-                      <Button size="sm" onClick={() => handleConfirm(slot.id)}>Confirmar</Button>
+                      <Button size="sm" onClick={() => handleConfirm(slot)}>Confirmar</Button>
                       <Button size="sm" variant="outline" onClick={() => handleCancel(slot.id)}>
                         <X className="h-3 w-3" /> Cancelar
                       </Button>
@@ -174,7 +182,7 @@ export default function ReservasPage() {
                     </div>
                   </div>
                   <div className="mt-3 flex gap-2">
-                    <Button size="sm" onClick={() => handleConfirm(slot.id)}>Salvar e Confirmar</Button>
+                    <Button size="sm" onClick={() => handleConfirm(slot)}>Salvar e Confirmar</Button>
                     <Button size="sm" variant="ghost" onClick={() => setShowForm(null)}>Cancelar</Button>
                   </div>
                 </div>

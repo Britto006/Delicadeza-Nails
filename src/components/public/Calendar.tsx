@@ -93,7 +93,9 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
               disabled={past || !inMonth || availableCount === 0}
               aria-label={`${formatDate(day, "d 'de' MMMM")}${
                 availableCount > 0
-                  ? `, ${availableCount} horário${availableCount > 1 ? "s" : ""} disponível${availableCount > 1 ? "eis" : ""}`
+                  ? availableCount > 1
+                    ? `, ${availableCount} horários disponíveis`
+                    : ", 1 horário disponível"
                   : ", sem horários disponíveis"
               }`}
               className={cn(

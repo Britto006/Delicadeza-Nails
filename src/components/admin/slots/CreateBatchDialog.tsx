@@ -25,6 +25,7 @@ const weekDaysOptions = [
 
 function generateTimeSlots(date: string, startTime: string, endTime: string, intervalMinutes: number) {
   const slots: { date: string; start_time: string; end_time: string; status: string }[] = [];
+  if (intervalMinutes <= 0) return slots;
   const [sh, sm] = startTime.split(":").map(Number);
   const [eh, em] = endTime.split(":").map(Number);
 

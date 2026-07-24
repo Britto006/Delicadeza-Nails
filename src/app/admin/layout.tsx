@@ -20,9 +20,14 @@ export default async function AdminLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name")
+    .select("name, role")
     .eq("id", user.id)
     .single();
+
+  // Só admin acessa o painel — usuário 'viewer' não tem nada a fazer aqui.
+  if (profile?.role !== "admin") {
+    redirect("/");
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">

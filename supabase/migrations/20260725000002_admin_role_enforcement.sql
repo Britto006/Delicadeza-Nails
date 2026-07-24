@@ -14,7 +14,13 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.is_admin FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.is_admin TO authenticated;
 
--- 2. Escrita em time_slots exige role admin (não basta estar autenticado).
+-- 2. Em time_slots, authenticated exige role admin tanto para ler (PII)
+--    quanto para escrever (não basta estar autenticado).
+CREATE POLICY "time_slots_select_admin" ON public.time_slots
+  FOR SELECT
+  TO authenticated
+  USING (public.is_admin());
+
 DROP POLICY IF EXISTS "time_slots_insert_admin" ON public.time_slots;
 DROP POLICY IF EXISTS "time_slots_update_admin" ON public.time_slots;
 DROP POLICY IF EXISTS "time_slots_delete_admin" ON public.time_slots;
