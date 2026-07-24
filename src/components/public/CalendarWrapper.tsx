@@ -3,20 +3,21 @@
 import { useState, useCallback } from "react";
 import { Calendar } from "@/components/public/Calendar";
 import { DaySlotsModal } from "@/components/public/DaySlotsModal";
-import type { TimeSlot } from "@/types/database";
+import type { PublicTimeSlot } from "@/types/database";
 
 interface CalendarWrapperProps {
-  initialSlots: Record<string, TimeSlot[]>;
+  initialSlots: Record<string, PublicTimeSlot[]>;
+  onBooked: () => void;
 }
 
-export function CalendarWrapper({ initialSlots }: CalendarWrapperProps) {
+export function CalendarWrapper({ initialSlots, onBooked }: CalendarWrapperProps) {
   const [selectedDay, setSelectedDay] = useState<{
     date: string;
-    slots: TimeSlot[];
+    slots: PublicTimeSlot[];
   } | null>(null);
 
   const handleDayClick = useCallback(
-    (date: string, slots: TimeSlot[]) => {
+    (date: string, slots: PublicTimeSlot[]) => {
       setSelectedDay({ date, slots });
     },
     []
@@ -31,6 +32,7 @@ export function CalendarWrapper({ initialSlots }: CalendarWrapperProps) {
         onClose={() => setSelectedDay(null)}
         date={selectedDay?.date ?? null}
         slots={selectedDay?.slots ?? []}
+        onBooked={onBooked}
       />
     </>
   );

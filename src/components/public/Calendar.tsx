@@ -13,11 +13,11 @@ import {
   addMonth,
   subMonth,
 } from "@/lib/utils/date";
-import type { TimeSlot } from "@/types/database";
+import type { PublicTimeSlot } from "@/types/database";
 
 interface CalendarProps {
-  onDayClick: (date: string, slots: TimeSlot[]) => void;
-  initialSlots: Record<string, TimeSlot[]>;
+  onDayClick: (date: string, slots: PublicTimeSlot[]) => void;
+  initialSlots: Record<string, PublicTimeSlot[]>;
 }
 
 export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
@@ -29,7 +29,7 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
   const handlePrevMonth = () => setCurrentDate((d) => subMonth(d));
   const handleNextMonth = () => setCurrentDate((d) => addMonth(d));
 
-  const getDaySlots = (day: Date): TimeSlot[] => {
+  const getDaySlots = (day: Date): PublicTimeSlot[] => {
     const y = day.getFullYear();
     const m = String(day.getMonth() + 1).padStart(2, "0");
     const d = String(day.getDate()).padStart(2, "0");

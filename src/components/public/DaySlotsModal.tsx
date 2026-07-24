@@ -1,22 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
-import { formatDate } from "@/lib/utils/date";
-import { generateWhatsAppMessage, generateWhatsAppUrl, isDesktopDevice } from "@/lib/whatsapp";
-import type { TimeSlot } from "@/types/database";
+import { Input } from "@/components/ui/Input";
+import { createClient } from "@/lib/supabase/client";
+import { bookSlotSchema } from "@/lib/schemas/appointment";
+import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
+import type { PublicTimeSlot } from "@/types/database";
 
 interface DaySlotsModalProps {
   open: boolean;
   onClose: () => void;
   date: string | null;
-  slots: TimeSlot[];
+  slots: PublicTimeSlot[];
+  onBooked: () => void;
 }
 
-export function DaySlotsModal({ open, onClose, date, slots }: DaySlotsModalProps) {
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [step, setStep] = useState<"list" | "confirm">("list");
+export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlotsModalProps) {
+  const [selectedSlot, setSelectedSlot] = useState<PublicTimeSlot | null>(null);
+  const [step, setStep] = useState<"list" | "form">("list");
+  const [clientName, setClientName] = useState("");
+  const [clientContact, setClientContact] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; contact?: string }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   if (!date) return null;
 
@@ -24,34 +32,85 @@ export function DaySlotsModal({ open, onClose, date, slots }: DaySlotsModalProps
   const [year, month, day] = date.split("-");
   const formattedDate = `${day}/${month}/${year}`;
 
-  const handleSlotClick = (slot: TimeSlot) => {
+  const handleSlotClick = (slot: PublicTimeSlot) => {
     setSelectedSlot(slot);
-    setStep("confirm");
+    setStep("form");
   };
 
-  const handleWhatsApp = () => {
-    if (!selectedSlot) return;
-    const msg = generateWhatsAppMessage(date, `${selectedSlot.start_time} - ${selectedSlot.end_time}`);
-    const url = generateWhatsAppUrl(msg);
-
-    if (isDesktopDevice()) {
-      const webUrl = url.replace("wa.me", "web.whatsapp.com/send");
-      window.open(webUrl, "_blank");
-    } else {
-      window.open(url, "_blank");
-    }
-
-    onClose();
-    setTimeout(() => {
-      setSelectedSlot(null);
-      setStep("list");
-    }, 500);
+  const resetForm = () => {
+    setSelectedSlot(null);
+    setStep("list");
+    setClientName("");
+    setClientContact("");
+    setFieldErrors({});
   };
 
   const handleClose = () => {
-    setSelectedSlot(null);
-    setStep("list");
+    resetForm();
     onClose();
+  };
+
+  const handleBook = async () => {
+    if (!selectedSlot || submitting) return;
+
+    const parsed = bookSlotSchema.safeParse({
+      client_name: clientName,
+      client_contact: clientContact,
+    });
+
+    if (!parsed.success) {
+      const errors: { name?: string; contact?: string } = {};
+      for (const issue of parsed.error.issues) {
+        if (issue.path[0] === "client_name") errors.name = issue.message;
+        if (issue.path[0] === "client_contact") errors.contact = issue.message;
+      }
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+    setSubmitting(true);
+
+    // Abre a janela antes do await para não ser barrada pelo popup blocker.
+    const whatsappWindow = window.open("", "_blank");
+
+    const supabase = createClient();
+    const { error } = await supabase.rpc("book_slot", {
+      p_slot_id: selectedSlot.id,
+      p_client_name: parsed.data.client_name,
+      p_client_contact: parsed.data.client_contact,
+    });
+
+    if (error) {
+      whatsappWindow?.close();
+      setSubmitting(false);
+      if (error.message.includes("SLOT_UNAVAILABLE")) {
+        toast.error("Esse horário acabou de ser reservado. Escolha outro.");
+      } else {
+        toast.error("Não foi possível reservar. Tente novamente.");
+      }
+      onBooked();
+      handleClose();
+      return;
+    }
+
+    const msg = generateWhatsAppMessage(
+      date,
+      `${selectedSlot.start_time.slice(0, 5)} - ${selectedSlot.end_time.slice(0, 5)}`,
+      parsed.data.client_name
+    );
+    const url = generateWhatsAppUrl(msg);
+
+    if (whatsappWindow) {
+      whatsappWindow.location.href = url;
+    } else {
+      window.location.href = url;
+    }
+
+    toast.success("Horário reservado! Confirme pelo WhatsApp.");
+    setSubmitting(false);
+    onBooked();
+    handleClose();
   };
 
   return (
@@ -78,7 +137,7 @@ export function DaySlotsModal({ open, onClose, date, slots }: DaySlotsModalProps
         </div>
       )}
 
-      {step === "confirm" && selectedSlot && (
+      {step === "form" && selectedSlot && (
         <div className="space-y-4">
           <div className="rounded-lg bg-muted p-4">
             <p className="text-sm text-muted-foreground">Data</p>
@@ -89,8 +148,28 @@ export function DaySlotsModal({ open, onClose, date, slots }: DaySlotsModalProps
             </p>
           </div>
 
+          <Input
+            id="client-name"
+            label="Seu nome"
+            placeholder="Ex: Maria Silva"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            error={fieldErrors.name}
+            maxLength={100}
+          />
+          <Input
+            id="client-contact"
+            label="Seu WhatsApp"
+            type="tel"
+            placeholder="Ex: 31999998888"
+            value={clientContact}
+            onChange={(e) => setClientContact(e.target.value)}
+            error={fieldErrors.contact}
+            maxLength={20}
+          />
+
           <p className="text-sm text-muted-foreground">
-            Você será redirecionada para o WhatsApp para confirmar o agendamento.
+            O horário fica reservado para você e a confirmação é feita pelo WhatsApp.
           </p>
 
           <div className="flex gap-2">
@@ -98,11 +177,12 @@ export function DaySlotsModal({ open, onClose, date, slots }: DaySlotsModalProps
               variant="outline"
               className="flex-1"
               onClick={() => setStep("list")}
+              disabled={submitting}
             >
               Voltar
             </Button>
-            <Button className="flex-1" onClick={handleWhatsApp}>
-              Agendar via WhatsApp
+            <Button className="flex-1" onClick={handleBook} loading={submitting}>
+              Reservar horário
             </Button>
           </div>
         </div>

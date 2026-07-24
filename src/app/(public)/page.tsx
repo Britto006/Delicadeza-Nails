@@ -5,7 +5,7 @@ import { CalendarWrapper } from "@/components/public/CalendarWrapper";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { createClient } from "@/lib/supabase/client";
 import { todayInTimezone } from "@/lib/utils/date";
-import type { TimeSlot } from "@/types/database";
+import type { PublicTimeSlot } from "@/types/database";
 
 function toLocalDateString(d: Date): string {
   const y = d.getFullYear();
@@ -15,7 +15,7 @@ function toLocalDateString(d: Date): string {
 }
 
 export default function Home() {
-  const [slots, setSlots] = useState<Record<string, TimeSlot[]>>({});
+  const [slots, setSlots] = useState<Record<string, PublicTimeSlot[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,9 +30,10 @@ export default function Home() {
     future.setMonth(future.getMonth() + 3);
     const lastDay = toLocalDateString(future);
 
+    // Colunas explícitas: anon não tem grant nas colunas de PII (client_name etc.)
     const { data, error: queryError } = await supabase
       .from("time_slots")
-      .select("*")
+      .select("id, date, start_time, end_time, status")
       .gte("date", firstDay)
       .lte("date", lastDay)
       .order("date", { ascending: true })
@@ -45,7 +46,7 @@ export default function Home() {
       return;
     }
 
-    const grouped: Record<string, TimeSlot[]> = {};
+    const grouped: Record<string, PublicTimeSlot[]> = {};
     for (const slot of data ?? []) {
       const key = String(slot.date);
       if (!grouped[key]) grouped[key] = [];
@@ -84,7 +85,7 @@ export default function Home() {
           <ErrorState message={error} onRetry={loadSlots} />
         </div>
       ) : (
-        <CalendarWrapper initialSlots={slots} />
+        <CalendarWrapper initialSlots={slots} onBooked={loadSlots} />
       )}
 
       <div className="mt-4 flex items-center justify-center rounded-xl bg-card p-3 shadow-soft">

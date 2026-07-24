@@ -15,6 +15,13 @@ export interface TimeSlot {
   updated_at: string;
 }
 
+// Colunas de time_slots visíveis ao público (anon não tem grant nas colunas
+// de PII — ver migration 20260725000001).
+export type PublicTimeSlot = Pick<
+  TimeSlot,
+  "id" | "date" | "start_time" | "end_time" | "status"
+>;
+
 export interface Appointment {
   id: string;
   slot_id: string;
