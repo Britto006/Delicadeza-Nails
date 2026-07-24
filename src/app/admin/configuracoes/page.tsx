@@ -45,6 +45,8 @@ export default function ConfiguracoesPage() {
   const [blockedDays, setBlockedDays] = useState<BlockedDay[]>([]);
   const [newBlockedDate, setNewBlockedDate] = useState("");
   const [newBlockedReason, setNewBlockedReason] = useState("");
+  const [slotInterval, setSlotInterval] = useState(90);
+  const [weeksAhead, setWeeksAhead] = useState(6);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -63,6 +65,8 @@ export default function ConfiguracoesPage() {
             setWorkingHours(hours);
           }
           setBlockedDays((data.blocked_days ?? []) as BlockedDay[]);
+          if (data.slot_interval_minutes) setSlotInterval(data.slot_interval_minutes);
+          if (data.weeks_ahead) setWeeksAhead(data.weeks_ahead);
         }
         setLoading(false);
       });
@@ -85,6 +89,8 @@ export default function ConfiguracoesPage() {
       const formData = new FormData();
       formData.set("working_hours", JSON.stringify(workingHours));
       formData.set("blocked_days", JSON.stringify(blockedDays));
+      formData.set("slot_interval_minutes", String(slotInterval));
+      formData.set("weeks_ahead", String(weeksAhead));
       await saveConfig(formData);
       toast.success("Configurações salvas");
     } catch {
@@ -233,6 +239,43 @@ export default function ConfiguracoesPage() {
                 Adicionar
               </Button>
             </div>
+          </Card>
+
+          <Card>
+            <h2 className="mb-4 font-serif text-lg text-foreground">Geração automática de horários</h2>
+            <p className="mb-4 text-sm text-muted-foreground">
+              O sistema cria horários sozinho conforme seu funcionamento. Ajuste a duração de cada
+              horário e com quantas semanas de antecedência mantê-los.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Duração de cada horário</label>
+                <select
+                  value={slotInterval}
+                  onChange={(e) => setSlotInterval(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value={30}>30 min</option>
+                  <option value={60}>60 min</option>
+                  <option value={90}>90 min</option>
+                  <option value={120}>120 min</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Antecedência (semanas)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={weeksAhead}
+                  onChange={(e) => setWeeksAhead(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              A duração vale para novos dias criados; dias que já têm horários não são alterados.
+            </p>
           </Card>
 
           <Card>

@@ -19,6 +19,11 @@ export const blockedDaySchema = z.object({
 export const studioConfigSchema = z.object({
   working_hours: workingHoursSchema,
   blocked_days: z.array(blockedDaySchema),
+  slot_interval_minutes: z
+    .number()
+    .int()
+    .refine((v) => [30, 60, 90, 120].includes(v), "Duração inválida"),
+  weeks_ahead: z.number().int().min(1, "Mínimo 1 semana").max(12, "Máximo 12 semanas"),
 });
 
 export type StudioConfigInput = z.infer<typeof studioConfigSchema>;

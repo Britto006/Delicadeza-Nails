@@ -18,6 +18,8 @@ export async function saveConfig(formData: FormData) {
     raw = {
       working_hours: JSON.parse(formData.get("working_hours") as string),
       blocked_days: JSON.parse(formData.get("blocked_days") as string),
+      slot_interval_minutes: Number(formData.get("slot_interval_minutes")),
+      weeks_ahead: Number(formData.get("weeks_ahead")),
     };
   } catch {
     throw new Error("Dados inválidos");
@@ -39,6 +41,8 @@ export async function saveConfig(formData: FormData) {
     .update({
       working_hours: parsed.data.working_hours,
       blocked_days: parsed.data.blocked_days,
+      slot_interval_minutes: parsed.data.slot_interval_minutes,
+      weeks_ahead: parsed.data.weeks_ahead,
     })
     .eq("id", row.id)
     .select("id")
