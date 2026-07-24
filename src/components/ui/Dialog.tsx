@@ -19,6 +19,12 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
+  // onClose muda de referência a cada render do pai; guardamos num ref para não
+  // recriar o efeito de foco a cada tecla (o que refocava o dialog e fechava o
+  // teclado no mobile a cada caractere digitado).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!open) return;
 
@@ -27,7 +33,7 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       // Focus trap: Tab/Shift+Tab circulam dentro do dialog.
@@ -55,7 +61,7 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
       document.body.style.overflow = "unset";
       previouslyFocused?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
