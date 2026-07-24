@@ -13,11 +13,13 @@ interface CreateBatchDialogProps {
 }
 
 const weekDaysOptions = [
+  { value: 0, label: "Dom" },
   { value: 1, label: "Seg" },
   { value: 2, label: "Ter" },
   { value: 3, label: "Qua" },
   { value: 4, label: "Qui" },
   { value: 5, label: "Sex" },
+  { value: 6, label: "Sáb" },
 ];
 
 function generateTimeSlots(date: string, startTime: string, endTime: string, intervalMinutes: number) {
@@ -81,14 +83,19 @@ export function CreateBatchDialog({ open, onClose }: CreateBatchDialogProps) {
       return;
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("time_slots")
-      .upsert(allSlots, { onConflict: "date,start_time", ignoreDuplicates: true });
+      .upsert(allSlots, { onConflict: "date,start_time", ignoreDuplicates: true })
+      .select("id");
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(`${allSlots.length} horários processados`);
+      const created = data?.length ?? 0;
+      const skipped = allSlots.length - created;
+      toast.success(
+        `${created} horários criados${skipped > 0 ? `, ${skipped} já existiam` : ""}`
+      );
       onClose();
     }
     setPending(false);

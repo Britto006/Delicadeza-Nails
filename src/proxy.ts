@@ -1,21 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const publicRoutes = ["/login"];
-
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const publicPrefixes = ["/_next", "/favicon", "/api/slots"];
-  if (publicPrefixes.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
-
   if (!pathname.startsWith("/admin")) {
-    return NextResponse.next();
-  }
-
-  if (publicRoutes.includes(pathname)) {
     return NextResponse.next();
   }
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { STUDIO_NAME } from "@/lib/constants";
+import { STUDIO_NAME, WHATSAPP_NUMBER } from "@/lib/constants";
 
 export function Header() {
   return (
@@ -10,7 +10,7 @@ export function Header() {
         </Link>
         <nav className="flex items-center gap-4">
           <a
-            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground transition-colors hover:text-primary"

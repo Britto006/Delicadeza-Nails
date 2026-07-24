@@ -24,17 +24,22 @@ export default function ReservasPage() {
     setLoading(true);
     const today = todayInTimezone();
 
-    const { data } = await supabase
+    let query = supabase
       .from("time_slots")
       .select("*")
       .gte("date", today)
-      .in("status", ["pending", "booked"])
       .order("date", { ascending: true })
       .order("start_time", { ascending: true });
 
+    if (filter !== "all") {
+      query = query.eq("status", filter);
+    }
+
+    const { data } = await query;
+
     setSlots(data ?? []);
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, filter]);
 
   useEffect(() => {
     loadSlots();
@@ -81,12 +86,6 @@ export default function ReservasPage() {
     }
   };
 
-  const filteredSlots = slots.filter((s) => {
-    if (filter === "pending") return s.status === "pending";
-    if (filter === "booked") return s.status === "booked";
-    return true;
-  });
-
   return (
     <div>
       <div className="mb-6">
@@ -116,7 +115,7 @@ export default function ReservasPage() {
             ))}
           </div>
         </Card>
-      ) : filteredSlots.length === 0 ? (
+      ) : slots.length === 0 ? (
         <Card>
           <EmptyState
             icon={<CalendarCheck className="h-8 w-8" />}
@@ -126,7 +125,7 @@ export default function ReservasPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredSlots.map((slot) => (
+          {slots.map((slot) => (
             <Card key={slot.id}>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">

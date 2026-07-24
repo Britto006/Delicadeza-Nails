@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  // Aceita só caminhos internos (evita open redirect via ?redirect=).
+  const rawRedirect = searchParams.get("redirect") ?? "";
+  const redirectTo =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/admin";
 
   const translateError = (message: string): string => {
     const msg = message.toLowerCase();
@@ -46,7 +54,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/admin");
+    router.push(redirectTo);
     router.refresh();
   };
 
@@ -95,5 +103,14 @@ export default function LoginPage() {
         </Button>
       </form>
     </div>
+  );
+}
+
+// useSearchParams exige Suspense boundary em página prerenderizada (Next 16).
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
