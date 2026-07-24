@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -20,7 +20,11 @@ export default function ReservasPage() {
   const [clientContact, setClientContact] = useState("");
   const supabase = createClient();
 
-  const loadSlots = useCallback(async () => {
+  const [refreshKey, setRefreshKey] = useState(0);
+  const loadSlots = () => setRefreshKey((k) => k + 1);
+
+  useEffect(() => {
+    let cancelled = false;
     const today = todayInTimezone();
 
     let query = supabase
@@ -34,15 +38,16 @@ export default function ReservasPage() {
       query = query.eq("status", filter);
     }
 
-    const { data } = await query;
+    query.then(({ data }) => {
+      if (cancelled) return;
+      setSlots(data ?? []);
+      setLoading(false);
+    });
 
-    setSlots(data ?? []);
-    setLoading(false);
-  }, [supabase, filter]);
-
-  useEffect(() => {
-    loadSlots();
-  }, [loadSlots]);
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, filter, refreshKey]);
 
   const handleConfirm = async (slotId: string) => {
     if (showForm === slotId) {

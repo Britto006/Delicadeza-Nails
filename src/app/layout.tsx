@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, DM_Serif_Display } from "next/font/google";
 import { Toaster } from "sonner";
+import { SITE_URL, STUDIO_NAME } from "@/lib/constants";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,11 +16,20 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Delicadeza Nails",
-    template: "%s | Delicadeza Nails",
+    default: STUDIO_NAME,
+    template: `%s | ${STUDIO_NAME}`,
   },
   description: "Agende seu horário na Delicadeza Nails de forma fácil e rápida",
+  openGraph: {
+    title: STUDIO_NAME,
+    description: "Agende seu horário na Delicadeza Nails de forma fácil e rápida",
+    url: "/",
+    siteName: STUDIO_NAME,
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

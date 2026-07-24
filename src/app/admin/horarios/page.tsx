@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -21,28 +21,34 @@ export default function HorariosPage() {
   );
   const supabase = createClient();
 
-  const loadSlots = useCallback(async () => {
+  const [refreshKey, setRefreshKey] = useState(0);
+  const loadSlots = () => setRefreshKey((k) => k + 1);
+
+  useEffect(() => {
+    let cancelled = false;
     const month = selectedDate.slice(0, 7);
     const [y, m] = month.split("-").map(Number);
     const firstDay = `${month}-01`;
     const lastDayNum = new Date(y!, m!, 0).getDate();
     const lastDay = `${month}-${String(lastDayNum).padStart(2, "0")}`;
 
-    const { data } = await supabase
+    supabase
       .from("time_slots")
       .select("*")
       .gte("date", firstDay)
       .lte("date", lastDay)
       .order("date", { ascending: true })
-      .order("start_time", { ascending: true });
+      .order("start_time", { ascending: true })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSlots(data ?? []);
+        setLoading(false);
+      });
 
-    setSlots(data ?? []);
-    setLoading(false);
-  }, [supabase, selectedDate]);
-
-  useEffect(() => {
-    loadSlots();
-  }, [loadSlots]);
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, selectedDate, refreshKey]);
 
   const handleStatusChange = async (slotId: string, newStatus: SlotStatus) => {
     const { error } = await supabase

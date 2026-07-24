@@ -26,7 +26,8 @@ interface CalendarProps {
 export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
   // Mês inicial baseado no "hoje" do estúdio (America/Sao_Paulo).
   const [currentDate, setCurrentDate] = useState(() => parseDateString(todayInTimezone()));
-  const [allSlots] = useState(initialSlots);
+  // Prop direta (sem snapshot em state) para refletir router.refresh() após reserva.
+  const allSlots = initialSlots;
 
   const days = getDaysInMonth(currentDate);
 
@@ -42,6 +43,7 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
       <div className="mb-4 flex items-center justify-between">
         <button
           onClick={handlePrevMonth}
+          aria-label="Mês anterior"
           className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -53,6 +55,7 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
 
         <button
           onClick={handleNextMonth}
+          aria-label="Próximo mês"
           className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <ChevronRight className="h-5 w-5" />
@@ -88,6 +91,11 @@ export function Calendar({ onDayClick, initialSlots }: CalendarProps) {
                 }
               }}
               disabled={past || !inMonth || availableCount === 0}
+              aria-label={`${formatDate(day, "d 'de' MMMM")}${
+                availableCount > 0
+                  ? `, ${availableCount} horário${availableCount > 1 ? "s" : ""} disponível${availableCount > 1 ? "eis" : ""}`
+                  : ", sem horários disponíveis"
+              }`}
               className={cn(
                 "flex aspect-square flex-col items-center justify-center rounded-lg text-sm transition-all duration-200",
                 "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",

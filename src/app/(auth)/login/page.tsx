@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -66,39 +67,33 @@ function LoginForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            placeholder="seu@email.com"
-          />
-        </div>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          label="Email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="seu@email.com"
+        />
 
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium text-foreground">Senha</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            placeholder="Sua senha"
-          />
-        </div>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          label="Senha"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Sua senha"
+        />
 
         {error && (
-          <p className="rounded-lg bg-slot-booked-bg px-3 py-2 text-sm text-slot-booked">{error}</p>
+          <p role="alert" className="rounded-lg bg-slot-booked-bg px-3 py-2 text-sm text-slot-booked">{error}</p>
         )}
 
-        <Button type="submit" className="w-full" disabled={pending}>
+        <Button type="submit" className="w-full" loading={pending}>
           {pending ? "Entrando..." : "Entrar"}
         </Button>
       </form>
