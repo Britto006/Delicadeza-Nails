@@ -5,6 +5,7 @@ import { CalendarWrapper } from "@/components/public/CalendarWrapper";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { createClient } from "@/lib/supabase/client";
 import { todayInTimezone, toLocalDateString, parseDateString } from "@/lib/utils/date";
+import { fetchStudioConfig } from "@/lib/config";
 import type { PublicTimeSlot } from "@/types/database";
 
 export default function Home() {
@@ -24,13 +25,16 @@ export default function Home() {
     const lastDay = toLocalDateString(future);
 
     // Colunas explícitas: anon não tem grant nas colunas de PII (client_name etc.)
-    const { data, error: queryError } = await supabase
-      .from("time_slots")
-      .select("id, date, start_time, end_time, status")
-      .gte("date", firstDay)
-      .lte("date", lastDay)
-      .order("date", { ascending: true })
-      .order("start_time", { ascending: true });
+    const [{ data, error: queryError }, config] = await Promise.all([
+      supabase
+        .from("time_slots")
+        .select("id, date, start_time, end_time, status")
+        .gte("date", firstDay)
+        .lte("date", lastDay)
+        .order("date", { ascending: true })
+        .order("start_time", { ascending: true }),
+      fetchStudioConfig(),
+    ]);
 
     if (queryError) {
       console.error("Erro ao buscar horários:", queryError.message);
@@ -39,9 +43,13 @@ export default function Home() {
       return;
     }
 
+    // Dias bloqueados nas configurações não aparecem no calendário público.
+    const blockedDates = new Set((config?.blocked_days ?? []).map((b) => b.date));
+
     const grouped: Record<string, PublicTimeSlot[]> = {};
     for (const slot of data ?? []) {
       const key = String(slot.date);
+      if (blockedDates.has(key)) continue;
       if (!grouped[key]) grouped[key] = [];
       grouped[key]!.push(slot);
     }
