@@ -21,7 +21,6 @@ export default function ReservasPage() {
   const supabase = createClient();
 
   const loadSlots = useCallback(async () => {
-    setLoading(true);
     const today = todayInTimezone();
 
     let query = supabase
@@ -97,7 +96,10 @@ export default function ReservasPage() {
         {(["pending", "booked", "all"] as const).map((f) => (
           <button
             key={f}
-            onClick={() => setFilter(f)}
+            onClick={() => {
+              setLoading(true);
+              setFilter(f);
+            }}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
               filter === f ? "bg-primary text-white" : "bg-card text-muted-foreground hover:bg-muted"
             }`}

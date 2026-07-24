@@ -22,7 +22,6 @@ export default function HorariosPage() {
   const supabase = createClient();
 
   const loadSlots = useCallback(async () => {
-    setLoading(true);
     const month = selectedDate.slice(0, 7);
     const [y, m] = month.split("-").map(Number);
     const firstDay = `${month}-01`;
@@ -90,7 +89,10 @@ export default function HorariosPage() {
           <input
             type="month"
             value={selectedDate.slice(0, 7)}
-            onChange={(e) => setSelectedDate(`${e.target.value}-01`)}
+            onChange={(e) => {
+              setLoading(true);
+              setSelectedDate(`${e.target.value}-01`);
+            }}
             className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
