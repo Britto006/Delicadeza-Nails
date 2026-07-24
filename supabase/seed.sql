@@ -1,5 +1,5 @@
--- Admin já criado via API
--- Email: admin@delicadeza.com
--- Senha: 123456
--- O trigger on_auth_user_created criou o profile automaticamente.
--- Para verificar: SELECT * FROM public.profiles;
+-- Crie o usuário admin pelo dashboard do Supabase (Authentication → Add user)
+-- com uma senha forte. O trigger on_auth_user_created cria o profile com
+-- role 'viewer'; promova a admin manualmente:
+--   UPDATE public.profiles SET role = 'admin' WHERE id = '<uuid-do-usuario>';
+-- Nunca versione email/senha reais neste arquivo.

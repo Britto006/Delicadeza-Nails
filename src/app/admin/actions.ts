@@ -1,37 +1,51 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { WorkingHours, BlockedDay } from "@/types/database";
+import { studioConfigSchema } from "@/lib/schemas/config";
 import { revalidatePath } from "next/cache";
-
-export async function loadConfig() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("studio_config")
-    .select("*")
-    .limit(1)
-    .single();
-
-  if (error) return null;
-  return data;
-}
 
 export async function saveConfig(formData: FormData) {
   const supabase = await createClient();
 
-  const workingHoursRaw = formData.get("working_hours") as string;
-  const blockedDaysRaw = formData.get("blocked_days") as string;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const working_hours: WorkingHours = JSON.parse(workingHoursRaw);
-  const blocked_days: BlockedDay[] = JSON.parse(blockedDaysRaw);
+  if (!user) throw new Error("Não autorizado");
 
-  const { error } = await supabase
+  let raw: unknown;
+  try {
+    raw = {
+      working_hours: JSON.parse(formData.get("working_hours") as string),
+      blocked_days: JSON.parse(formData.get("blocked_days") as string),
+    };
+  } catch {
+    throw new Error("Dados inválidos");
+  }
+
+  const parsed = studioConfigSchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Dados inválidos");
+
+  const { data: row, error: fetchError } = await supabase
     .from("studio_config")
-    .update({ working_hours, blocked_days })
-    .eq("id", 1);
+    .select("id")
+    .limit(1)
+    .single();
 
-  if (error) throw new Error(error.message);
+  if (fetchError || !row) throw new Error("Configuração não encontrada");
+
+  const { data: updated, error } = await supabase
+    .from("studio_config")
+    .update({
+      working_hours: parsed.data.working_hours,
+      blocked_days: parsed.data.blocked_days,
+    })
+    .eq("id", row.id)
+    .select("id")
+    .single();
+
+  if (error || !updated) throw new Error(error?.message ?? "Nada foi salvo");
 
   revalidatePath("/admin/configuracoes");
+  revalidatePath("/");
 }
