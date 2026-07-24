@@ -13,23 +13,41 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const translateError = (message: string): string => {
+    const msg = message.toLowerCase();
+    if (msg.includes("invalid login credentials")) {
+      return "E-mail ou senha incorretos.";
+    }
+    if (msg.includes("email not confirmed")) {
+      return "E-mail ainda não confirmado.";
+    }
+    if (msg.includes("failed to fetch") || msg.includes("network")) {
+      return "Erro de conexão. Verifique sua internet e tente novamente.";
+    }
+    if (msg.includes("too many requests") || msg.includes("rate limit")) {
+      return "Muitas tentativas. Aguarde um momento e tente novamente.";
+    }
+    return "Não foi possível entrar. Tente novamente.";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPending(true);
     setError("");
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
 
     if (error) {
-      setError(error.message);
+      setError(translateError(error.message));
       setPending(false);
       return;
     }
 
     router.push("/admin");
+    router.refresh();
   };
 
   return (

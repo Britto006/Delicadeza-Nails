@@ -11,7 +11,6 @@ import {
   isSameDay,
   isToday,
   isPast,
-  parse,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TIMEZONE } from "@/lib/constants";

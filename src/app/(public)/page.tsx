@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CalendarWrapper } from "@/components/public/CalendarWrapper";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { createClient } from "@/lib/supabase/client";
 import { todayInTimezone } from "@/lib/utils/date";
 import type { TimeSlot } from "@/types/database";
@@ -17,44 +17,47 @@ function toLocalDateString(d: Date): string {
 export default function Home() {
   const [slots, setSlots] = useState<Record<string, TimeSlot[]>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadSlots = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const firstDay = todayInTimezone();
+
+    const future = new Date();
+    future.setMonth(future.getMonth() + 3);
+    const lastDay = toLocalDateString(future);
+
+    const { data, error: queryError } = await supabase
+      .from("time_slots")
+      .select("*")
+      .gte("date", firstDay)
+      .lte("date", lastDay)
+      .order("date", { ascending: true })
+      .order("start_time", { ascending: true });
+
+    if (queryError) {
+      console.error("Erro ao buscar horários:", queryError.message);
+      setError("Não foi possível carregar os horários. Tente novamente.");
+      setLoading(false);
+      return;
+    }
+
+    const grouped: Record<string, TimeSlot[]> = {};
+    for (const slot of data ?? []) {
+      const key = String(slot.date);
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key]!.push(slot);
+    }
+    setSlots(grouped);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    const loadSlots = async () => {
-      const supabase = createClient();
-      const firstDay = todayInTimezone();
-
-      const future = new Date();
-      future.setMonth(future.getMonth() + 3);
-      const lastDay = toLocalDateString(future);
-
-      const { data, error } = await supabase
-        .from("time_slots")
-        .select("*")
-        .gte("date", firstDay)
-        .lte("date", lastDay)
-        .order("date", { ascending: true })
-        .order("start_time", { ascending: true });
-
-      if (error) {
-        console.error("Erro ao buscar horários:", error.message);
-        setLoading(false);
-        return;
-      }
-
-      if (data) {
-        const grouped: Record<string, TimeSlot[]> = {};
-        for (const slot of data) {
-          const key = String(slot.date);
-          if (!grouped[key]) grouped[key] = [];
-          grouped[key]!.push(slot);
-        }
-        setSlots(grouped);
-      }
-      setLoading(false);
-    };
-
     loadSlots();
-  }, []);
+  }, [loadSlots]);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
@@ -66,15 +69,19 @@ export default function Home() {
       {loading ? (
         <div className="rounded-2xl bg-card p-6 shadow-medium">
           <div className="mb-4 flex items-center justify-between">
-            <Skeleton className="h-9 w-9 rounded-lg" />
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-9 w-9 rounded-lg" />
+            <div className="h-9 w-9 animate-pulse rounded-lg bg-muted" />
+            <div className="h-6 w-40 animate-pulse rounded-md bg-muted" />
+            <div className="h-9 w-9 animate-pulse rounded-lg bg-muted" />
           </div>
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: 35 }).map((_, i) => (
               <div key={i} className="aspect-square animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
+        </div>
+      ) : error ? (
+        <div className="rounded-2xl bg-card p-6 shadow-medium">
+          <ErrorState message={error} onRetry={loadSlots} />
         </div>
       ) : (
         <CalendarWrapper initialSlots={slots} />

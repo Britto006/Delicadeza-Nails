@@ -24,8 +24,10 @@ export default function HorariosPage() {
   const loadSlots = useCallback(async () => {
     setLoading(true);
     const month = selectedDate.slice(0, 7);
+    const [y, m] = month.split("-").map(Number);
     const firstDay = `${month}-01`;
-    const lastDay = `${month}-31`;
+    const lastDayNum = new Date(y!, m!, 0).getDate();
+    const lastDay = `${month}-${String(lastDayNum).padStart(2, "0")}`;
 
     const { data } = await supabase
       .from("time_slots")

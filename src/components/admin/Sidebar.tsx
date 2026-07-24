@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Calendar, CalendarCheck, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { STUDIO_NAME } from "@/lib/constants";
+import { logoutAction } from "@/lib/actions/auth";
 
 const links = [
   { href: "/admin/horarios", label: "Horários", icon: Calendar },
@@ -47,7 +48,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-white/10 px-3 py-4">
-        <form action="/admin/login" method="post">
+        <form action={logoutAction}>
           <button
             type="submit"
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-active/20 hover:text-sidebar-foreground"

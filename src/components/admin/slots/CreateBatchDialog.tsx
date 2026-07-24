@@ -22,10 +22,10 @@ const weekDaysOptions = [
 function generateTimeSlots(date: string, startTime: string, endTime: string, intervalMinutes: number) {
   const slots: { date: string; start_time: string; end_time: string; status: string }[] = [];
   const [sh, sm] = startTime.split(":").map(Number);
-  const [eh] = endTime.split(":").map(Number);
+  const [eh, em] = endTime.split(":").map(Number);
 
   let currentMinutes = sh! * 60 + sm!;
-  const endMinutes = eh! * 60;
+  const endMinutes = eh! * 60 + (em ?? 0);
 
   while (currentMinutes + intervalMinutes <= endMinutes) {
     const startH = Math.floor(currentMinutes / 60).toString().padStart(2, "0");
@@ -77,17 +77,19 @@ export function CreateBatchDialog({ open, onClose }: CreateBatchDialogProps) {
     }
 
     if (allSlots.length === 0) {
-      toast.error("Nenhum horário para criar");
+      toast.error("Selecione ao menos um dia da semana e um período válido.");
       setPending(false);
       return;
     }
 
-    const { error } = await supabase.from("time_slots").insert(allSlots);
+    const { error } = await supabase
+      .from("time_slots")
+      .upsert(allSlots, { onConflict: "date,start_time", ignoreDuplicates: true });
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(`${allSlots.length} horários criados`);
+      toast.success(`${allSlots.length} horários processados`);
       onClose();
     }
     setPending(false);
