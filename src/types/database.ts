@@ -1,7 +1,5 @@
 export type SlotStatus = "available" | "pending" | "booked" | "blocked";
 
-export type AppointmentStatus = "pending" | "confirmed" | "cancelled";
-
 export interface TimeSlot {
   id: string;
   date: string;
@@ -10,7 +8,6 @@ export interface TimeSlot {
   status: SlotStatus;
   client_name: string | null;
   client_contact: string | null;
-  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,21 +19,10 @@ export type PublicTimeSlot = Pick<
   "id" | "date" | "start_time" | "end_time" | "status"
 >;
 
-export interface Appointment {
-  id: string;
-  slot_id: string;
-  client_name: string;
-  client_contact: string;
-  status: AppointmentStatus;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface Profile {
   id: string;
   name: string;
-  role: "admin";
+  role: "admin" | "viewer";
   avatar_url: string | null;
   created_at: string;
   updated_at: string;

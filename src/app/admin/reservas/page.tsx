@@ -6,15 +6,22 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
-import { formatDate, todayInTimezone } from "@/lib/utils/date";
+import { formatDate, todayInTimezone, parseDateString, toLocalDateString } from "@/lib/utils/date";
+import {
+  generateWhatsAppUrl,
+  generateConfirmationMessage,
+  generateReminderMessage,
+} from "@/lib/whatsapp";
 import { toast } from "sonner";
-import { CalendarCheck, X } from "lucide-react";
+import { CalendarCheck, X, MessageCircle } from "lucide-react";
 import type { TimeSlot } from "@/types/database";
+
+type ReservasFilter = "pending" | "booked" | "tomorrow" | "all";
 
 export default function ReservasPage() {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"pending" | "booked" | "all">("pending");
+  const [filter, setFilter] = useState<ReservasFilter>("pending");
   const [showForm, setShowForm] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientContact, setClientContact] = useState("");
@@ -30,12 +37,19 @@ export default function ReservasPage() {
     let query = supabase
       .from("time_slots")
       .select("*")
-      .gte("date", today)
       .order("date", { ascending: true })
       .order("start_time", { ascending: true });
 
-    if (filter !== "all") {
-      query = query.eq("status", filter);
+    if (filter === "tomorrow") {
+      // Reservas de amanhã (pendentes + confirmadas): a rotina de lembrete.
+      const t = parseDateString(today);
+      t.setDate(t.getDate() + 1);
+      query = query.eq("date", toLocalDateString(t)).in("status", ["pending", "booked"]);
+    } else {
+      query = query.gte("date", today);
+      if (filter !== "all") {
+        query = query.eq("status", filter);
+      }
     }
 
     query.then(({ data }) => {
@@ -83,6 +97,17 @@ export default function ReservasPage() {
     }
   };
 
+  // Link de WhatsApp já apontando para a CLIENTE, com a mensagem pronta.
+  // Pendente → confirmação; confirmada/amanhã → lembrete.
+  const waLink = (slot: TimeSlot) => {
+    const time = `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
+    const msg =
+      slot.status === "pending"
+        ? generateConfirmationMessage(slot.date, time, slot.client_name ?? undefined)
+        : generateReminderMessage(slot.date, time, slot.client_name ?? undefined);
+    return generateWhatsAppUrl(msg, slot.client_contact ?? undefined);
+  };
+
   const handleCancel = async (slotId: string) => {
     if (!confirm("Cancelar esta reserva?")) return;
     const { error } = await supabase
@@ -105,8 +130,8 @@ export default function ReservasPage() {
         <p className="text-sm text-muted-foreground">Gerencie as solicitações de reserva</p>
       </div>
 
-      <div className="mb-4 flex gap-2">
-        {(["pending", "booked", "all"] as const).map((f) => (
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(["pending", "booked", "tomorrow", "all"] as const).map((f) => (
           <button
             key={f}
             onClick={() => {
@@ -117,7 +142,7 @@ export default function ReservasPage() {
               filter === f ? "bg-primary text-white" : "bg-card text-muted-foreground hover:bg-muted"
             }`}
           >
-            {f === "pending" ? "Pendentes" : f === "booked" ? "Confirmadas" : "Todas"}
+            {f === "pending" ? "Pendentes" : f === "booked" ? "Confirmadas" : f === "tomorrow" ? "Amanhã" : "Todas"}
           </button>
         ))}
       </div>
@@ -155,6 +180,17 @@ export default function ReservasPage() {
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {slot.client_contact && (
+                    <a
+                      href={waLink(slot)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 sm:flex-none"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      {slot.status === "pending" ? "Confirmar no Zap" : "Lembrar no Zap"}
+                    </a>
+                  )}
                   {slot.status === "pending" && (
                     <>
                       <Button size="sm" className="flex-1 sm:flex-none" onClick={() => handleConfirm(slot)}>Confirmar</Button>

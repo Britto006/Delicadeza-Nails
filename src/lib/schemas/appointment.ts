@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidBrPhone } from "@/lib/utils/phone";
 
 // Reserva pública de horário (RPC book_slot) — mesmos limites validados no banco.
 export const bookSlotSchema = z.object({
@@ -10,8 +11,7 @@ export const bookSlotSchema = z.object({
   client_contact: z
     .string()
     .trim()
-    .min(8, "Telefone inválido")
-    .max(20, "Telefone inválido"),
+    .refine(isValidBrPhone, "Telefone inválido — informe DDD + número (ex: 31999998888)"),
 });
 
 export type BookSlotInput = z.infer<typeof bookSlotSchema>;

@@ -87,6 +87,8 @@ export function DaySlotsModal({ open, onClose, date, slots, onBooked }: DaySlots
     if (error) {
       if (error.message.includes("SLOT_UNAVAILABLE")) {
         toast.error("Esse horário acabou de ser reservado. Escolha outro.");
+      } else if (error.message.includes("DAY_BLOCKED")) {
+        toast.error("Esta data não está mais disponível. Escolha outra.");
       } else {
         toast.error("Não foi possível reservar. Tente novamente.");
       }

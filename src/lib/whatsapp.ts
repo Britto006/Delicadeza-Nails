@@ -1,31 +1,70 @@
 import { WHATSAPP_NUMBER, STUDIO_NAME } from "@/lib/constants";
+import { normalizeBrPhone } from "@/lib/utils/phone";
 
+function formatBrDate(date: string): string {
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+// Mensagem da CLIENTE para o estúdio (após reservar no site).
 export function generateWhatsAppMessage(
   date: string,
   time: string,
   clientName?: string
 ): string {
-  const [year, month, day] = date.split("-");
-  const formattedDate = `${day}/${month}/${year}`;
   const greeting = clientName
     ? `Olá! Sou ${clientName} e acabei de reservar um horário no ${STUDIO_NAME}.`
     : `Olá! Gostaria de agendar um horário no ${STUDIO_NAME}.`;
 
   return (
     greeting +
-    `\n\nData: ${formattedDate}` +
+    `\n\nData: ${formatBrDate(date)}` +
     `\nHorário: ${time}` +
     `\n\nPor favor, confirme a disponibilidade.` +
     `\n\nObrigada!`
   );
 }
 
-export function generateWhatsAppUrl(message: string): string {
+// Mensagem do ESTÚDIO para a cliente — confirmação da reserva.
+export function generateConfirmationMessage(
+  date: string,
+  time: string,
+  clientName?: string
+): string {
+  const oi = clientName ? `Oi, ${clientName}! ` : "Oi! ";
+  return (
+    `${oi}Aqui é do ${STUDIO_NAME}. Seu horário está confirmado! 💅` +
+    `\n\nData: ${formatBrDate(date)}` +
+    `\nHorário: ${time}` +
+    `\n\nQualquer imprevisto, é só me avisar. Até lá!`
+  );
+}
+
+// Mensagem do ESTÚDIO para a cliente — lembrete (véspera).
+export function generateReminderMessage(
+  date: string,
+  time: string,
+  clientName?: string
+): string {
+  const oi = clientName ? `Oi, ${clientName}! ` : "Oi! ";
+  return (
+    `${oi}Passando pra lembrar do seu horário no ${STUDIO_NAME}. 😊` +
+    `\n\nData: ${formatBrDate(date)}` +
+    `\nHorário: ${time}` +
+    `\n\nConsegue confirmar que vem? Se precisar remarcar, me avisa.`
+  );
+}
+
+// Monta a URL do WhatsApp. Sem telefone destino → abre a conversa com o
+// estúdio. Com telefone destino (ex: a dona mandando p/ a cliente) → abre a
+// conversa com aquele número.
+export function generateWhatsAppUrl(message: string, targetPhone?: string): string {
+  const number = (targetPhone && normalizeBrPhone(targetPhone)) || WHATSAPP_NUMBER;
   const encoded = encodeURIComponent(message);
   if (isDesktopDevice()) {
-    return `https://web.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encoded}`;
+    return `https://web.whatsapp.com/send?phone=${number}&text=${encoded}`;
   }
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`;
+  return `https://wa.me/${number}?text=${encoded}`;
 }
 
 export function isDesktopDevice(): boolean {
